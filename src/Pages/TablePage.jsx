@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import "./TablePage.css"; // Импорт CSS файла
 import QRCode from "qrcode.react";
@@ -10,6 +10,9 @@ const TablePage = () => {
   const [judgeNames, setJudges] = useState(["", "", ""]);
   const [names, setNames] = useState({ redName, blueName });
   const [qrCodeUrl, setQrCodeUrl] = useState("");
+
+  const [isRunning, setIsRunning] = useState(false);
+  const timerRef = useRef(null);
 
   const initialTableData = [
     [
@@ -31,6 +34,74 @@ const TablePage = () => {
   ];
 
   const [tableData, setTableData] = useState(initialTableData);
+
+  const startTimer = (updatedTableData, row) => {
+    if (!isRunning) {
+      console.log("Таймер начался");
+      setIsRunning(true);
+      timerRef.current = setTimeout(() => {
+        console.log("Таймер завершился");
+        calculateRowTotals(updatedTableData);
+        clearRowByIndex(row);
+        setIsRunning(false);
+      }, 3000);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const clearRowByIndex = (rowIndex) => {
+    setTableData((prevTableData) => {
+      return prevTableData.map((row, index) => {
+        if (index === rowIndex) {
+          return row.map((cell, cellIndex) => {
+            if (cellIndex < 3 || cellIndex >= row.length - 3) {
+              return ""; // Заменяем значение на пустую строку
+            }
+            return cell; // Оставляем значение без изменений
+          });
+        }
+        return row; // Оставляем строку без изменений, если это не целевая строка
+      });
+    });
+  };
+
+  const calculateRowTotals = (data) => {
+    const newData = data.map((row, rowIndex) => {
+      if (rowIndex === 0 || rowIndex === 5) return row;
+
+      const rowTotalRed = row
+        .slice(0, 3)
+        .reduce((acc, cell) => acc + (parseInt(cell, 10) || 0), 0);
+      const rowTotalBlue = row
+        .slice(6, 9)
+        .reduce((acc, cell) => acc + (parseInt(cell, 10) || 0), 0);
+
+      const updatedRow = [...row];
+      updatedRow[3] = rowTotalRed;
+      updatedRow[5] = rowTotalBlue;
+
+      return updatedRow;
+    });
+
+    const finalRedTotal = newData
+      .slice(1, 5)
+      .reduce((acc, row) => acc + (parseInt(row[3], 10) || 0), 0);
+    const finalBlueTotal = newData
+      .slice(1, 5)
+      .reduce((acc, row) => acc + (parseInt(row[5], 10) || 0), 0);
+
+    newData[5][3] = finalRedTotal;
+    newData[5][5] = finalBlueTotal;
+
+    setTableData(newData);
+  };
 
   const updateTableCell = (row, col, value, judgeName) => {
     let newValue = value;
@@ -96,6 +167,7 @@ const TablePage = () => {
           }
         }
       }
+      startTimer(updatedTableData, row);
       return updatedTableData;
     });
   };
@@ -113,6 +185,7 @@ const TablePage = () => {
         blueName: data.blueName,
       });
     });
+
     socket.on("update_judges", (data) => {
       const { judge_name } = data;
       console.log("Received update_judges:", judge_name);
