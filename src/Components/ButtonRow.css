@@ -1,0 +1,70 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap");
+
+body {
+  padding: 2rem;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-family: "Roboto", sans-serif;
+}
+
+.left {
+  display: flex;
+}
+
+.right {
+  display: flex;
+}
+
+.center {
+  text-align: center;
+  flex: 1;
+}
+
+.button {
+  margin: 5px;
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  transition: all 0.1s ease; /* Плавный переход для всех изменений */
+}
+
+.button-pred {
+  margin: 5px;
+  width: 220px;
+  height: 60px;
+  font-size: 20px;
+  border-radius: 5px;
+  border: none;
+  transition: all 0.1s ease; /* Плавный переход для всех изменений */
+}
+
+.left-button {
+  background-color: rgb(204, 59, 59);
+  color: white;
+}
+
+.right-button {
+  background-color: rgb(87, 87, 173);
+  color: white;
+}
+
+.click-count {
+  font-size: large;
+  font-weight: 300;
+}
+
+/* Эффект нажатия для всех кнопок */
+.button:active,
+.button-pred:active,
+.left-button:active,
+.right-button:active {
+  transform: scale(0.95); /* Уменьшение размера кнопки */
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); /* Тень для кнопки при нажатии */
+}
