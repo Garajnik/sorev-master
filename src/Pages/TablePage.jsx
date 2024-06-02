@@ -162,17 +162,17 @@ const TablePage = () => {
     });
   };
 
-  const clearTotals = (data) => {
-    return data.map((row, rowIndex) => {
-      if (rowIndex === 0 || rowIndex === 5) return row;
+  // const clearTotals = (data) => {
+  //   return data.map((row, rowIndex) => {
+  //     if (rowIndex === 0 || rowIndex === 5) return row;
 
-      const updatedRow = [...row];
-      updatedRow[3] = "";
-      updatedRow[5] = "";
+  //     const updatedRow = [...row];
+  //     updatedRow[3] = "";
+  //     updatedRow[5] = "";
 
-      return updatedRow;
-    });
-  };
+  //     return updatedRow;
+  //   });
+  // };
 
   const updateTableCell = (row, col, value, judgeName) => {
     let newValue = value;
@@ -328,15 +328,15 @@ const TablePage = () => {
     }
   };
 
-  const handleClearTotals = () => {
-    const clearedData = clearTotals(tableData);
-    setTableData(clearedData);
-    calculateFinalTotals(clearedData);
-    clearRowByIndex(1);
-    clearRowByIndex(2);
-    clearRowByIndex(3);
-    clearRowByIndex(4);
-  };
+  // const handleClearTotals = () => {
+  //   const clearedData = clearTotals(tableData);
+  //   setTableData(clearedData);
+  //   calculateFinalTotals(clearedData);
+  //   clearRowByIndex(1);
+  //   clearRowByIndex(2);
+  //   clearRowByIndex(3);
+  //   clearRowByIndex(4);
+  // };
 
   return (
     <div className="table-container">
@@ -375,9 +375,9 @@ const TablePage = () => {
       <button onClick={handleNewRound} className="end-round-button">
         Завершить поединок
       </button>
-      <button onClick={handleClearTotals} className="end-round-button">
+      {/* <button onClick={handleClearTotals} className="end-round-button">
         Очистить результаты
-      </button>
+      </button> */}
     </div>
   );
 };
