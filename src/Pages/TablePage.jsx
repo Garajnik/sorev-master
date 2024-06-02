@@ -26,10 +26,10 @@ const TablePage = () => {
       `${judgeNames[1]}`,
       `${judgeNames[2]}`,
     ],
-    ["", "", "", "0", "Удар рукой", "0", "", "", ""],
-    ["", "", "", "0", "Удар ногой", "0", "", "", ""],
-    ["", "", "", "0", "Бросок", "0", "", "", ""],
-    ["", "", "", "0", "Предупреждение", "0", "", "", ""],
+    ["", "", "", "", "Удар рукой", "", "", "", ""],
+    ["", "", "", "", "Удар ногой", "", "", "", ""],
+    ["", "", "", "", "Бросок", "", "", "", ""],
+    ["", "", "", "", "Предупреждение", "", "", "", ""],
     ["", "", "", "0", "Итог", "0", "", "", ""],
   ];
 
@@ -133,16 +133,23 @@ const TablePage = () => {
       return updatedRow;
     });
 
+    const sumCellValues = (cell) => {
+      return cell
+        ? cell
+            .split(",")
+            .reduce((acc, num) => acc + (parseInt(num, 10) || 0), 0)
+        : 0;
+    };
+
     const finalRedTotal = newData
       .slice(1, 5)
-      .reduce((acc, row) => acc + (parseInt(row[3], 10) || 0), 0);
+      .reduce((acc, row) => acc + sumCellValues(row[3]), 0);
     const finalBlueTotal = newData
       .slice(1, 5)
-      .reduce((acc, row) => acc + (parseInt(row[5], 10) || 0), 0);
+      .reduce((acc, row) => acc + sumCellValues(row[5]), 0);
 
     newData[5][3] = finalRedTotal;
     newData[5][5] = finalBlueTotal;
-
     setTableData(newData);
   };
 
@@ -313,8 +320,13 @@ const TablePage = () => {
   };
 
   const handleClearTotals = () => {
-    setTableData(clearTotals(tableData));
-    calculateRowTotals(tableData);
+    const clearedData = clearTotals(tableData);
+    setTableData(clearedData);
+    calculateRowTotals(clearedData);
+    clearRowByIndex(1);
+    clearRowByIndex(2);
+    clearRowByIndex(3);
+    clearRowByIndex(4);
   };
 
   return (
