@@ -26,7 +26,12 @@ const ButtonRow = ({
                   isLastButton ? "last-button" : ""
                 }`}
                 onClick={() =>
-                  onButtonClick(index, rowIndex, buttonCount * 2 - index - 1)
+                  onButtonClick(
+                    index,
+                    rowIndex,
+                    buttonCount * 2 - index - 1,
+                    additionalClass
+                  )
                 }
               >
                 {buttonClass === "button"
@@ -42,7 +47,9 @@ const ButtonRow = ({
                 className={`${buttonClass} ${additionalClass} ${
                   isLastButton ? "last-button" : ""
                 }`}
-                onClick={() => onButtonClick(index, rowIndex, index)}
+                onClick={() =>
+                  onButtonClick(index, rowIndex, index, additionalClass)
+                }
               >
                 {buttonClass === "button"
                   ? isLastButton
@@ -77,7 +84,6 @@ const ButtonRow = ({
 
 ButtonRow.propTypes = {
   rowIndex: PropTypes.number.isRequired,
-  colIndex: PropTypes.number.isRequired,
   title: PropTypes.string.isRequired,
   buttonCount: PropTypes.number,
   buttonClass: PropTypes.string,

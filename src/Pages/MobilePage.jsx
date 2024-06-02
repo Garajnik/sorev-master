@@ -16,7 +16,7 @@ const MobilePage = ({
   const [buttonClicks, setButtonClicks] = useState({});
   const [names, setNames] = useState({ redName, blueName });
 
-  //Отключаем прокрутку
+  // Отключаем прокрутку
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -25,7 +25,7 @@ const MobilePage = ({
     };
   }, []);
 
-  //Получаем имена с сервера
+  // Получаем имена с сервера
   useEffect(() => {
     const fetchNames = async () => {
       try {
@@ -64,7 +64,12 @@ const MobilePage = ({
     };
   }, []);
 
-  const handleButtonClick = async (index, rowIndex, colIndex) => {
+  const handleButtonClick = async (
+    index,
+    rowIndex,
+    colIndex,
+    additionalClass
+  ) => {
     const postData = {
       "judge-name": judgeName,
       "button-index": index + 1,
@@ -86,16 +91,8 @@ const MobilePage = ({
 
     setButtonClicks((prevClicks) => ({
       ...prevClicks,
-      [`${rowIndex}-${index}-left-button`]: prevClicks[
-        `${rowIndex}-${index}-left-button`
-      ]
-        ? prevClicks[`${rowIndex}-${index}-left-button`] + 1
-        : 1,
-      [`${rowIndex}-${index}-right-button`]: prevClicks[
-        `${rowIndex}-${index}-right-button`
-      ]
-        ? prevClicks[`${rowIndex}-${index}-right-button`] + 1
-        : 1,
+      [`${rowIndex}-${index}-${additionalClass}`]:
+        (prevClicks[`${rowIndex}-${index}-${additionalClass}`] || 0) + 1,
     }));
   };
 
