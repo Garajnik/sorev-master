@@ -24,12 +24,27 @@
   border: 1px solid #ccc;
 }
 
-.button {
-  font-size: 16px;
+.input[name="field1"] {
+  background-color: lightcoral; /* Фон для первого input */
+}
+
+.input[name="field2"] {
+  background-color: lightblue; /* Фон для второго input */
+}
+
+.button-start-page {
+  font-size: 18px;
+  background-color: darkblue; /* Измененный фон кнопки */
   color: #ffffff;
   border: none;
   border-radius: 4px;
+  padding: 10px 20px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: navy; /* Изменение фона при наведении */
 }
 
 .error {

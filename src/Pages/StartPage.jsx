@@ -49,11 +49,11 @@ const StartPage = () => {
     let field2Error = "";
 
     if (!inputs.field1) {
-      field1Error = "Введите ФИО красного участника";
+      field1Error = "Введите ФИО синего участника";
     }
 
     if (!inputs.field2) {
-      field2Error = "Введите ФИО синего участника";
+      field2Error = "Введите ФИО красного участника";
     }
 
     if (field1Error || field2Error) {
@@ -115,7 +115,7 @@ const StartPage = () => {
             name="field1"
             value={inputs.field1}
             onChange={handleChange}
-            placeholder="ФИО Синий"
+            placeholder="ФИО Красный"
             className="input"
           />
           {errors.field1 && <div className="error">{errors.field1}</div>}
@@ -126,12 +126,12 @@ const StartPage = () => {
             name="field2"
             value={inputs.field2}
             onChange={handleChange}
-            placeholder="ФИО Красный"
+            placeholder="ФИО Синий"
             className="input"
           />
           {errors.field2 && <div className="error">{errors.field2}</div>}
         </div>
-        <button type="submit" className="button">
+        <button type="submit" className="button-start-page">
           Начать
         </button>
       </form>
