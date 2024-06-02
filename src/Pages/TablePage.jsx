@@ -73,19 +73,62 @@ const TablePage = () => {
   };
 
   const calculateRowTotals = (data) => {
+    const findMostFrequentOrLargestNumber = (arr) => {
+      const frequencyMap = arr.reduce((acc, num) => {
+        if (num !== "" && num !== null && num !== undefined) {
+          acc[num] = (acc[num] || 0) + 1;
+        }
+        return acc;
+      }, {});
+
+      let mostFrequentNumber = null;
+      let maxFrequency = 0;
+      let largestNumber = null;
+
+      for (const num in frequencyMap) {
+        if (frequencyMap[num] > maxFrequency) {
+          mostFrequentNumber = num;
+          maxFrequency = frequencyMap[num];
+        }
+        if (
+          largestNumber === null ||
+          parseInt(num, 10) > parseInt(largestNumber, 10)
+        ) {
+          largestNumber = num;
+        }
+      }
+
+      return maxFrequency > 1 ? mostFrequentNumber : largestNumber;
+    };
+
     const newData = data.map((row, rowIndex) => {
       if (rowIndex === 0 || rowIndex === 5) return row;
 
-      const rowTotalRed = row
-        .slice(0, 3)
-        .reduce((acc, cell) => acc + (parseInt(cell, 10) || 0), 0);
-      const rowTotalBlue = row
-        .slice(6, 9)
-        .reduce((acc, cell) => acc + (parseInt(cell, 10) || 0), 0);
+      const rowTotalRed = findMostFrequentOrLargestNumber(row.slice(0, 3));
+      const rowTotalBlue = findMostFrequentOrLargestNumber(row.slice(6, 9));
 
       const updatedRow = [...row];
-      updatedRow[3] = rowTotalRed;
-      updatedRow[5] = rowTotalBlue;
+      if (rowTotalRed === "П") {
+        updatedRow[5] = updatedRow[5] ? `${updatedRow[5]}, 2` : "2";
+      } else {
+        updatedRow[3] =
+          rowTotalRed !== null
+            ? updatedRow[3]
+              ? `${updatedRow[3]}, ${rowTotalRed}`
+              : rowTotalRed
+            : updatedRow[3];
+      }
+
+      if (rowTotalBlue === "П") {
+        updatedRow[3] = updatedRow[3] ? `${updatedRow[3]}, 2` : "2";
+      } else {
+        updatedRow[5] =
+          rowTotalBlue !== null
+            ? updatedRow[5]
+              ? `${updatedRow[5]}, ${rowTotalBlue}`
+              : rowTotalBlue
+            : updatedRow[5];
+      }
 
       return updatedRow;
     });
@@ -101,6 +144,18 @@ const TablePage = () => {
     newData[5][5] = finalBlueTotal;
 
     setTableData(newData);
+  };
+
+  const clearTotals = (data) => {
+    return data.map((row, rowIndex) => {
+      if (rowIndex === 0 || rowIndex === 5) return row;
+
+      const updatedRow = [...row];
+      updatedRow[3] = "";
+      updatedRow[5] = "";
+
+      return updatedRow;
+    });
   };
 
   const updateTableCell = (row, col, value, judgeName) => {
@@ -150,7 +205,6 @@ const TablePage = () => {
             }
           }
         }
-        return updatedTableData;
         //Установка значений для всех остальных рядов
       } else {
         if (col > 4) {
@@ -258,6 +312,11 @@ const TablePage = () => {
     }
   };
 
+  const handleClearTotals = () => {
+    setTableData(clearTotals(tableData));
+    calculateRowTotals(tableData);
+  };
+
   return (
     <div className="table-container">
       <div className="qr-code">
@@ -294,6 +353,9 @@ const TablePage = () => {
       </table>
       <button onClick={handleNewRound} className="end-round-button">
         Завершить поединок
+      </button>
+      <button onClick={handleClearTotals} className="end-round-button">
+        Очистить результаты
       </button>
     </div>
   );
