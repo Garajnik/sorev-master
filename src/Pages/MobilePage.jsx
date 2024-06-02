@@ -86,7 +86,16 @@ const MobilePage = ({
 
     setButtonClicks((prevClicks) => ({
       ...prevClicks,
-      [`${rowIndex}-${index}`]: true,
+      [`${rowIndex}-${index}-left-button`]: prevClicks[
+        `${rowIndex}-${index}-left-button`
+      ]
+        ? prevClicks[`${rowIndex}-${index}-left-button`] + 1
+        : 1,
+      [`${rowIndex}-${index}-right-button`]: prevClicks[
+        `${rowIndex}-${index}-right-button`
+      ]
+        ? prevClicks[`${rowIndex}-${index}-right-button`] + 1
+        : 1,
     }));
   };
 

@@ -41,7 +41,7 @@ const TablePage = () => {
       setIsRunning(true);
       timerRef.current = setTimeout(() => {
         console.log("Таймер завершился");
-        calculateRowTotals(updatedTableData);
+        calculateRowTotalForRow(updatedTableData, row);
         clearRowByIndex(row);
         setIsRunning(false);
       }, 3000);
@@ -72,67 +72,73 @@ const TablePage = () => {
     });
   };
 
-  const calculateRowTotals = (data) => {
-    const findMostFrequentOrLargestNumber = (arr) => {
-      const frequencyMap = arr.reduce((acc, num) => {
-        if (num !== "" && num !== null && num !== undefined) {
-          acc[num] = (acc[num] || 0) + 1;
-        }
-        return acc;
-      }, {});
-
-      let mostFrequentNumber = null;
-      let maxFrequency = 0;
-      let largestNumber = null;
-
-      for (const num in frequencyMap) {
-        if (frequencyMap[num] > maxFrequency) {
-          mostFrequentNumber = num;
-          maxFrequency = frequencyMap[num];
-        }
-        if (
-          largestNumber === null ||
-          parseInt(num, 10) > parseInt(largestNumber, 10)
-        ) {
-          largestNumber = num;
-        }
+  const findMostFrequentOrLargestNumber = (arr) => {
+    const frequencyMap = arr.reduce((acc, num) => {
+      if (num !== "" && num !== null && num !== undefined) {
+        acc[num] = (acc[num] || 0) + 1;
       }
+      return acc;
+    }, {});
 
-      return maxFrequency > 1 ? mostFrequentNumber : largestNumber;
-    };
+    let mostFrequentNumber = null;
+    let maxFrequency = 0;
+    let largestNumber = null;
 
-    const newData = data.map((row, rowIndex) => {
-      if (rowIndex === 0 || rowIndex === 5) return row;
-
-      const rowTotalRed = findMostFrequentOrLargestNumber(row.slice(0, 3));
-      const rowTotalBlue = findMostFrequentOrLargestNumber(row.slice(6, 9));
-
-      const updatedRow = [...row];
-      if (rowTotalRed === "П") {
-        updatedRow[5] = updatedRow[5] ? `${updatedRow[5]}, 2` : "2";
-      } else {
-        updatedRow[3] =
-          rowTotalRed !== null
-            ? updatedRow[3]
-              ? `${updatedRow[3]}, ${rowTotalRed}`
-              : rowTotalRed
-            : updatedRow[3];
+    for (const num in frequencyMap) {
+      if (frequencyMap[num] > maxFrequency) {
+        mostFrequentNumber = num;
+        maxFrequency = frequencyMap[num];
       }
-
-      if (rowTotalBlue === "П") {
-        updatedRow[3] = updatedRow[3] ? `${updatedRow[3]}, 2` : "2";
-      } else {
-        updatedRow[5] =
-          rowTotalBlue !== null
-            ? updatedRow[5]
-              ? `${updatedRow[5]}, ${rowTotalBlue}`
-              : rowTotalBlue
-            : updatedRow[5];
+      if (
+        largestNumber === null ||
+        parseInt(num, 10) > parseInt(largestNumber, 10)
+      ) {
+        largestNumber = num;
       }
+    }
 
-      return updatedRow;
+    return maxFrequency > 1 ? mostFrequentNumber : largestNumber;
+  };
+
+  const calculateRowTotalForRow = (data, rowIndex) => {
+    if (rowIndex === 0 || rowIndex === 5) return;
+
+    const row = data[rowIndex];
+    const rowTotalRed = findMostFrequentOrLargestNumber(row.slice(0, 3));
+    const rowTotalBlue = findMostFrequentOrLargestNumber(row.slice(6, 9));
+
+    const updatedRow = [...row];
+    if (rowTotalRed === "П") {
+      updatedRow[5] = updatedRow[5] ? `${updatedRow[5]}, 2` : "2";
+    } else if (rowTotalRed !== null) {
+      updatedRow[3] =
+        rowTotalRed !== null
+          ? updatedRow[3]
+            ? `${updatedRow[3]}, ${rowTotalRed}`
+            : rowTotalRed
+          : updatedRow[3];
+    }
+
+    if (rowTotalBlue === "П") {
+      updatedRow[3] = updatedRow[3] ? `${updatedRow[3]}, 2` : "2";
+    } else if (rowTotalBlue !== null) {
+      updatedRow[5] =
+        rowTotalBlue !== null
+          ? updatedRow[5]
+            ? `${updatedRow[5]}, ${rowTotalBlue}`
+            : rowTotalBlue
+          : updatedRow[5];
+    }
+
+    setTableData((prevTableData) => {
+      const newTableData = [...prevTableData];
+      newTableData[rowIndex] = updatedRow;
+      calculateFinalTotals(newTableData);
+      return newTableData;
     });
+  };
 
+  const calculateFinalTotals = (data) => {
     const sumCellValues = (cell) => {
       return cell
         ? cell
@@ -141,16 +147,19 @@ const TablePage = () => {
         : 0;
     };
 
-    const finalRedTotal = newData
+    const finalRedTotal = data
       .slice(1, 5)
       .reduce((acc, row) => acc + sumCellValues(row[3]), 0);
-    const finalBlueTotal = newData
+    const finalBlueTotal = data
       .slice(1, 5)
       .reduce((acc, row) => acc + sumCellValues(row[5]), 0);
 
-    newData[5][3] = finalRedTotal;
-    newData[5][5] = finalBlueTotal;
-    setTableData(newData);
+    setTableData((prevTableData) => {
+      const newTableData = [...prevTableData];
+      newTableData[5][3] = finalRedTotal;
+      newTableData[5][5] = finalBlueTotal;
+      return newTableData;
+    });
   };
 
   const clearTotals = (data) => {
@@ -322,7 +331,7 @@ const TablePage = () => {
   const handleClearTotals = () => {
     const clearedData = clearTotals(tableData);
     setTableData(clearedData);
-    calculateRowTotals(clearedData);
+    calculateFinalTotals(clearedData);
     clearRowByIndex(1);
     clearRowByIndex(2);
     clearRowByIndex(3);
