@@ -72,15 +72,28 @@ def submit_judge_name():
     data = request.json
     judge_name = data.get("judge_name")
     
-    # Отправляем данные всем подключенным клиентам через сокеты
+    # Проверяем, есть ли имя судьи уже в списке подключенных судей
+    if judge_name not in connected_judges:
+        connected_judges.append(judge_name)
+        
+    # Отправляем обновленный список всех подключенных судей всем клиентам через сокеты
     socketio.emit('update_judges', {
-        "judge_name": judge_name,
+        "connected_judges": connected_judges
     })
     
     # Логирование полученных данных
     print(f"Judge Name: {judge_name}")
+    print(f"Connected judges: {connected_judges}")
     
     return jsonify({"message": "Judge name received", "data": data}), 200
+
+# Запрашиваем судей при открытии страницы
+@socketio.on('request_judges')
+def handle_request_judges():
+    # Emit the current list of connected judges to the requesting client
+    socketio.emit('update_judges', {
+        "connected_judges": connected_judges
+    })
 
 
 @app.route('/handle_button_click', methods=['POST'])
@@ -107,7 +120,7 @@ def handle_button_click():
         "judge_name": judge_name,
         "button_index": button_index,
         "button_column": button_column,
-        "button_row": button_row
+        "button_row": button_row 
     })
     
     return jsonify({"message": "Button click received", "data": data}), 200

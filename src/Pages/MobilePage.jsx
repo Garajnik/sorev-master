@@ -107,6 +107,7 @@ const MobilePage = ({
       <ButtonRow
         rowIndex={0}
         title="Удар рукой"
+        buttonCount={3}
         onButtonClick={handleButtonClick}
         buttonClicks={buttonClicks}
       />
@@ -114,7 +115,7 @@ const MobilePage = ({
       <ButtonRow
         rowIndex={1}
         title="Удар ногой"
-        buttonCount={3}
+        buttonCount={4}
         onButtonClick={handleButtonClick}
         buttonClicks={buttonClicks}
       />

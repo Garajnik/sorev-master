@@ -14,6 +14,9 @@ const TablePage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const timerRef = useRef(null);
 
+  const [endRoundText, setEndRoundText] = useState("");
+  const [showNewButton, setShowNewButton] = useState(false);
+
   const initialTableData = [
     [
       `${judgeNames[0]}`,
@@ -162,21 +165,9 @@ const TablePage = () => {
     });
   };
 
-  // const clearTotals = (data) => {
-  //   return data.map((row, rowIndex) => {
-  //     if (rowIndex === 0 || rowIndex === 5) return row;
-
-  //     const updatedRow = [...row];
-  //     updatedRow[3] = "";
-  //     updatedRow[5] = "";
-
-  //     return updatedRow;
-  //   });
-  // };
-
   const updateTableCell = (row, col, value, judgeName) => {
     let newValue = value;
-    if (row === 2) {
+    if (row === 1) {
       if (value >= 3) {
         newValue = "Н";
       }
@@ -190,8 +181,8 @@ const TablePage = () => {
     }
     setTableData((prevTableData) => {
       const updatedTableData = [...prevTableData];
-      //Установка значений для среднего ряда
-      if (row === 2) {
+      //Установка значений для первого ряда
+      if (row === 1) {
         if (col > 3) {
           for (let i = 4; i < 9; i++) {
             if (updatedTableData[0][i] === judgeName) {
@@ -256,23 +247,40 @@ const TablePage = () => {
       });
     });
 
+    socket.emit("request_judges");
+
     socket.on("update_judges", (data) => {
-      const { judge_name } = data;
-      console.log("Received update_judges:", judge_name);
+      const { connected_judges } = data;
+      console.log("Received update_judges:", connected_judges);
 
       setJudges((prevJudgeNames) => {
-        for (let i = 0; i < prevJudgeNames.length; i++) {
-          if (prevJudgeNames[i] === "") {
-            const newJudgeNames = [
-              ...prevJudgeNames.slice(0, i),
-              judge_name,
-              ...prevJudgeNames.slice(i + 1),
-            ];
-            console.log("Судья установлен, новые судьи: ", newJudgeNames);
-            return newJudgeNames;
+        // Create a new set from previous judge names to efficiently check for duplicates
+        const judgeSet = new Set(prevJudgeNames);
+
+        // Create a new array to hold updated judge names
+        const newJudgeNames = [...prevJudgeNames];
+
+        // Fill in the empty slots with the received judge names if they are not duplicates
+        for (let judge_name of connected_judges) {
+          if (!judgeSet.has(judge_name)) {
+            judgeSet.add(judge_name);
+            let added = false;
+            for (let i = 0; i < newJudgeNames.length; i++) {
+              if (newJudgeNames[i] === "") {
+                newJudgeNames[i] = judge_name;
+                added = true;
+                break;
+              }
+            }
+            // If there were no empty slots, append the judge name
+            if (!added) {
+              newJudgeNames.push(judge_name);
+            }
           }
         }
-        return prevJudgeNames;
+
+        console.log("Updated judges:", newJudgeNames);
+        return newJudgeNames;
       });
     });
 
@@ -320,6 +328,12 @@ const TablePage = () => {
     }
   };
 
+  // Устанавливаем текст для завершения поединка
+  const endRound = (text) => {
+    setEndRoundText(`Поединок завершён. ${text}`);
+    setShowNewButton(true);
+  };
+
   const navigate = useNavigate();
 
   const handleNewRound = () => {
@@ -327,17 +341,6 @@ const TablePage = () => {
       navigate("/");
     }
   };
-
-  // const handleClearTotals = () => {
-  //   const clearedData = clearTotals(tableData);
-  //   setTableData(clearedData);
-  //   calculateFinalTotals(clearedData);
-  //   clearRowByIndex(1);
-  //   clearRowByIndex(2);
-  //   clearRowByIndex(3);
-  //   clearRowByIndex(4);
-  // };
-
   return (
     <div className="table-container">
       <div className="qr-code">
@@ -372,12 +375,18 @@ const TablePage = () => {
           ))}
         </tbody>
       </table>
-      <button onClick={handleNewRound} className="end-round-button">
-        Завершить поединок
-      </button>
-      {/* <button onClick={handleClearTotals} className="end-round-button">
-        Очистить результаты
-      </button> */}
+      <div>
+        {!showNewButton ? (
+          <button onClick={() => endRound("")} className="end-round-button">
+            Завершить раунд
+          </button>
+        ) : (
+          <button onClick={handleNewRound} className="end-round-button">
+            Начать новый поединок
+          </button>
+        )}
+      </div>
+      <h1>{endRoundText}</h1>
     </div>
   );
 };
