@@ -44,27 +44,11 @@ const TablePage = () => {
       setIsRunning(true);
       timerRef.current = setTimeout(() => {
         console.log("Таймер завершился");
-        //Считаем итоги в последней строке
+        //checkForEndValues(tableData);
         calculateRowTotalForRow(updatedTableData, row);
-        //Очищаем старые значения
         clearRowByIndex(row);
         setIsRunning(false);
       }, 3000);
-    }
-  };
-
-  const checkResult = (counts) => {
-    if (counts[0] >= 2) {
-      endRound("Нокдаун, победил красный");
-    }
-    if (counts[1] >= 2) {
-      endRound("Нокдаун, победил синий");
-    }
-    if (counts[2] >= 3) {
-      endRound("Предупреждение, победил красный");
-    }
-    if (counts[3] >= 3) {
-      endRound("Предупреждение, победил синий");
     }
   };
 
@@ -161,7 +145,6 @@ const TablePage = () => {
       const newTableData = [...prevTableData];
       newTableData[rowIndex] = updatedRow;
       calculateFinalTotals(newTableData);
-      countHNInColumns(newTableData);
       return newTableData;
     });
   };
@@ -268,39 +251,45 @@ const TablePage = () => {
   };
 
   // Функция для подсчета количества "Н" и "П" в определённых столбцах, начиная со второй строки
-  const countHNInColumns = (arr) => {
-    console.log(arr);
-    const counts = [0, 0, 0, 0]; // [countHInCol4, countHInCol6, countPInCol4, countPInCol6]
+  const checkForEndValues = (arr) => {
+    let countHInCol4 = 0;
+    let countHInCol6 = 0;
+    let countPInCol4 = 0;
+    let countPInCol6 = 0;
 
+    // Начинаем со второй строки (индекс 1)
     for (let i = 1; i < arr.length; i++) {
       const row = arr[i];
+
+      // Проверяем тип данных и разбиваем элементы 4-го и 6-го столбцов на подэлементы
       const col4Elements = typeof row[3] === "string" ? row[3].split(",") : [];
       const col6Elements = typeof row[5] === "string" ? row[5].split(",") : [];
 
+      // Проверяем 4-й столбец (индекс 3)
       col4Elements.forEach((element) => {
-        console.log(element);
-        const trimmedElement = element.trim();
-        if (trimmedElement === "Н") {
-          counts[0]++;
+        if (element === "Н") {
+          countHInCol4++;
         }
-        if (trimmedElement === "П") {
-          counts[2]++;
+        if (element === "П") {
+          countPInCol4++;
         }
       });
 
+      // Проверяем 6-й столбец (индекс 5)
       col6Elements.forEach((element) => {
-        const trimmedElement = element.trim();
-        if (trimmedElement === "Н") {
-          counts[1]++;
+        if (element === "Н") {
+          countHInCol6++;
         }
-        if (trimmedElement === "П") {
-          counts[3]++;
+        if (element === "П") {
+          countPInCol6++;
         }
       });
     }
 
-    checkResult(counts);
-    console.log("Counts: " + counts);
+    console.log("Количество 'Н' в 4-м столбце:", countHInCol4);
+    console.log("Количество 'Н' в 6-м столбце:", countHInCol6);
+    console.log("Количество 'П' в 4-м столбце:", countPInCol4);
+    console.log("Количество 'П' в 6-м столбце:", countPInCol6);
   };
 
   useEffect(() => {
