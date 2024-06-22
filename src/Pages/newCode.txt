@@ -17,7 +17,6 @@ const TablePage = () => {
   const [endRoundText, setEndRoundText] = useState("");
   const [showNewButton, setShowNewButton] = useState(false);
 
-  // Эта таблица только для старта
   const initialTableData = [
     [
       `${judgeNames[0]}`,
@@ -77,7 +76,6 @@ const TablePage = () => {
     };
   }, []);
 
-  // Отчищаем значения рядов
   const clearRowByIndex = (rowIndex) => {
     setTableData((prevTableData) => {
       return prevTableData.map((row, index) => {
@@ -94,7 +92,6 @@ const TablePage = () => {
     });
   };
 
-  // Считаем самое большое число или больше всего повторяющееся
   const findMostFrequentOrLargestNumber = (arr) => {
     const filledArr = arr.filter(
       (num) => num !== "" && num !== null && num !== undefined
@@ -135,7 +132,6 @@ const TablePage = () => {
     return maxFrequency > 1 ? mostFrequentNumber : largestNumber;
   };
 
-  // Здесь считаются итоги для каждой строки (4 и 6 столбец)
   const calculateRowTotalForRow = (data, rowIndex) => {
     if (rowIndex === 0 || rowIndex === 5) return;
 
@@ -170,7 +166,6 @@ const TablePage = () => {
     });
   };
 
-  // Здесь считаются главные итоги в последней строке
   const calculateFinalTotals = (data) => {
     const sumCellValues = (cell) => {
       return cell
