@@ -12,7 +12,7 @@ const TablePage = () => {
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
   let [isRunning] = useState(false);
-  let [timerRow, setTimerRow] = useState(0);
+  let [timerRow] = useState(0);
 
   const timerRef = useRef(null);
 
@@ -135,6 +135,13 @@ const TablePage = () => {
     const filledArr = arr.filter(
       (num) => num !== "" && num !== null && num !== undefined
     );
+
+    const countP = filledArr.filter((num) => num === "П").length;
+
+    // Возвращаем null, если "П" меньше 3-х
+    if (countP > 0 && countP < 3) {
+      return null;
+    }
 
     const hasP = filledArr.includes("П");
 
