@@ -3,10 +3,14 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 import socket
 import os
+import webbrowser
+import threading
+from threading import Timer
+from engineio.async_drivers import threading
 
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*",async_mode="threading")
 
 connected_judges = []
 
@@ -125,5 +129,13 @@ def handle_button_click():
     
     return jsonify({"message": "Button click received", "data": data}), 200
 
-if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+
+def open_browser():
+    webbrowser.open_new("http://localhost:5000")
+
+# Настраиваем таймер для открытия браузера через 1 секунду после запуска сервера
+Timer(1, open_browser).start()
+
+
+socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+
