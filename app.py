@@ -137,5 +137,5 @@ def open_browser():
 Timer(1, open_browser).start()
 
 
-socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+socketio.run(app, host='0.0.0.0', port=5000, debug=False)
 

@@ -138,8 +138,8 @@ const TablePage = () => {
 
     const countP = filledArr.filter((num) => num === "П").length;
 
-    // Возвращаем null, если "П" меньше 3-х
-    if (countP > 0 && countP < 3) {
+    // Возвращаем null, если "П" меньше 2-х
+    if (countP > 0 && countP < 2) {
       return null;
     }
 

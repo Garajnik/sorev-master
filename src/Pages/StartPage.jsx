@@ -22,10 +22,10 @@ const StartPage = () => {
           }/participant_names`
         );
         const data = await response.json();
-        setInputs({
-          field1: data.redName,
-          field2: data.blueName,
-        });
+        // setInputs({
+        //   field1: data.redName,
+        //   field2: data.blueName,
+        // });
       } catch (error) {
         console.error("Error fetching participant names:", error);
       }

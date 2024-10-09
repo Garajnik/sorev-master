@@ -64,6 +64,33 @@ const MobilePage = ({
     };
   }, []);
 
+  // Вращаем экран сразу
+  useEffect(() => {
+    const lockOrientation = async () => {
+      try {
+        // Attempt to lock the screen orientation to landscape
+        if (screen.orientation && screen.orientation.lock) {
+          await screen.orientation.lock("landscape");
+        } else {
+          console.warn(
+            "Screen Orientation API is not supported in this browser."
+          );
+        }
+      } catch (error) {
+        console.error("Orientation lock failed:", error);
+      }
+    };
+
+    lockOrientation();
+
+    // Unlock the orientation when the component is unmounted
+    return () => {
+      if (screen.orientation && screen.orientation.unlock) {
+        screen.orientation.unlock();
+      }
+    };
+  }, []);
+
   const handleButtonClick = async (
     index,
     rowIndex,
@@ -76,6 +103,8 @@ const MobilePage = ({
       "button-column": colIndex + 1,
       "button-row": rowIndex + 1,
     };
+
+    navigator.vibrate(100);
 
     try {
       await axios.post(
