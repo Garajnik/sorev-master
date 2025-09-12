@@ -14,8 +14,7 @@ const NewJudge = () => {
   const handleSubmit = async () => {
     try {
       const response = await axios.post(
-        `http://${
-          window.location.host.split(":")[0] + ":5000"
+        `http://${window.location.host.split(":")[0] + ":5000"
         }/submit_judge_name`,
         {
           judge_name: judgeName,

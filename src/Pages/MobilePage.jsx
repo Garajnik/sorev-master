@@ -30,8 +30,7 @@ const MobilePage = ({
     const fetchNames = async () => {
       try {
         const response = await axios.get(
-          `http://${
-            window.location.host.split(":")[0] + ":5000"
+          `http://${window.location.host.split(":")[0] + ":5000"
           }/participant_names`
         );
         const data = response.data;
@@ -108,8 +107,7 @@ const MobilePage = ({
 
     try {
       await axios.post(
-        `http://${
-          window.location.host.split(":")[0] + ":5000"
+        `http://${window.location.host.split(":")[0] + ":5000"
         }/handle_button_click`,
         postData
       );
