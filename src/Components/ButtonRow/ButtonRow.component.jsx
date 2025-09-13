@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import "./ButtonRow.css";
 
-const ButtonRow = ({
+export const ButtonRow = ({
   rowIndex,
   title,
   buttonCount = 4,
@@ -22,9 +22,8 @@ const ButtonRow = ({
                 {buttonClicks[`${rowIndex}-${index}-${additionalClass}`] || 0}
               </span>
               <button
-                className={`${buttonClass} ${additionalClass} ${
-                  isLastButton ? "last-button" : ""
-                }`}
+                className={`${buttonClass} ${additionalClass} ${isLastButton ? "last-button" : ""
+                  }`}
                 onClick={() =>
                   onButtonClick(
                     index,
@@ -44,9 +43,8 @@ const ButtonRow = ({
           ) : (
             <>
               <button
-                className={`${buttonClass} ${additionalClass} ${
-                  isLastButton ? "last-button" : ""
-                }`}
+                className={`${buttonClass} ${additionalClass} ${isLastButton ? "last-button" : ""
+                  }`}
                 onClick={() =>
                   onButtonClick(index, rowIndex, index, additionalClass)
                 }
@@ -91,4 +89,3 @@ ButtonRow.propTypes = {
   buttonClicks: PropTypes.object.isRequired,
 };
 
-export default ButtonRow;

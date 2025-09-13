@@ -1,22 +1,25 @@
 import { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
-import "./TablePage.css"; // Импорт CSS файла
 import QRCode from "qrcode.react";
 import { useNavigate } from "react-router-dom";
+import styles from "./TablePage.module.css";
 
-const TablePage = () => {
+export const TablePage = () => {
   let redName = "Имя Красного Участника";
   let blueName = "Имя Синего Участника";
   const [judgeNames, setJudges] = useState(["", "", ""]);
   const [names, setNames] = useState({ redName, blueName });
   const [qrCodeUrl, setQrCodeUrl] = useState("");
 
-  const [isRunning, setIsRunning] = useState(false);
+  let [isRunning] = useState(false);
+  let [timerRow] = useState(0);
+
   const timerRef = useRef(null);
 
   const [endRoundText, setEndRoundText] = useState("");
   const [showNewButton, setShowNewButton] = useState(false);
 
+  // Эта таблица только для старта
   const initialTableData = [
     [
       `${judgeNames[0]}`,
@@ -38,17 +41,51 @@ const TablePage = () => {
 
   const [tableData, setTableData] = useState(initialTableData);
 
+  const [newTableData, setNewTableData] = useState([
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+    ["", "", "", "", "", "", "", "", ""],
+  ]);
+
+  const mergeTableData = (existingData, newData) => {
+    return existingData.map((row, rowIndex) => {
+      return row.map((cell, colIndex) => {
+        const newValue = newData[rowIndex]?.[colIndex];
+        return newValue ? `${cell} (${newValue})` : cell;
+      });
+    });
+  };
+
+  const mergedTableData = mergeTableData(tableData, newTableData);
+
   const startTimer = (updatedTableData, row) => {
     if (!isRunning) {
-      console.log("Таймер начался");
-      setIsRunning(true);
+      timerRow = row;
+      isRunning = true;
+      console.log("Таймер начался на ряду: " + timerRow);
       timerRef.current = setTimeout(() => {
-        console.log("Таймер завершился");
+        console.log("Таймер завершился на ряду: " + timerRow);
         //Считаем итоги в последней строке
         calculateRowTotalForRow(updatedTableData, row);
         //Очищаем старые значения
         clearRowByIndex(row);
-        setIsRunning(false);
+        isRunning = false;
+      }, 3000);
+    } else if (row != timerRow) {
+      console.log("Запускаем дополнительный таймер");
+      timerRow = row;
+      isRunning = true;
+      console.log("Таймер начался на ряду: " + timerRow);
+      timerRef.current = setTimeout(() => {
+        console.log("Таймер завершился на ряду: " + timerRow);
+        //Считаем итоги в последней строке
+        calculateRowTotalForRow(updatedTableData, row);
+        //Очищаем старые значения
+        clearRowByIndex(row);
+        isRunning = false;
       }, 3000);
     }
   };
@@ -76,6 +113,7 @@ const TablePage = () => {
     };
   }, []);
 
+  // Отчищаем значения рядов
   const clearRowByIndex = (rowIndex) => {
     setTableData((prevTableData) => {
       return prevTableData.map((row, index) => {
@@ -92,10 +130,18 @@ const TablePage = () => {
     });
   };
 
+  // Считаем самое большое число или больше всего повторяющееся
   const findMostFrequentOrLargestNumber = (arr) => {
     const filledArr = arr.filter(
       (num) => num !== "" && num !== null && num !== undefined
     );
+
+    const countP = filledArr.filter((num) => num === "П").length;
+
+    // Возвращаем null, если "П" меньше 2-х
+    if (countP > 0 && countP < 2) {
+      return null;
+    }
 
     const hasP = filledArr.includes("П");
 
@@ -132,6 +178,7 @@ const TablePage = () => {
     return maxFrequency > 1 ? mostFrequentNumber : largestNumber;
   };
 
+  // Здесь считаются итоги для каждой строки (4 и 6 столбец)
   const calculateRowTotalForRow = (data, rowIndex) => {
     if (rowIndex === 0 || rowIndex === 5) return;
 
@@ -142,7 +189,8 @@ const TablePage = () => {
     const updatedRow = [...row];
 
     if (rowTotalRed === "П") {
-      updatedRow[5] = updatedRow[5] ? `${updatedRow[5]}, 2, П` : "2, П";
+      updatedRow[5] = updatedRow[5] ? `${updatedRow[5]}, 2` : "2";
+      updatedRow[3] = updatedRow[3] ? `${updatedRow[3]}, П` : "П";
     } else if (rowTotalRed !== null) {
       updatedRow[3] = updatedRow[3]
         ? `${updatedRow[3]}, ${rowTotalRed}`
@@ -150,12 +198,31 @@ const TablePage = () => {
     }
 
     if (rowTotalBlue === "П") {
-      updatedRow[3] = updatedRow[3] ? `${updatedRow[3]}, 2, П` : "2, П";
+      updatedRow[5] = updatedRow[5] ? `${updatedRow[5]}, П` : "П";
+      updatedRow[3] = updatedRow[3] ? `${updatedRow[3]}, 2` : "2";
     } else if (rowTotalBlue !== null) {
       updatedRow[5] = updatedRow[5]
         ? `${updatedRow[5]}, ${rowTotalBlue}`
         : rowTotalBlue;
     }
+
+    // Update newTableData with old values from the current row
+    setNewTableData((prevNewTableData) => {
+      return prevNewTableData.map((newRow, newIndex) => {
+        if (newIndex === rowIndex) {
+          return newRow.map((newCell, newCellIndex) => {
+            if (newCellIndex < 3 || newCellIndex >= newRow.length - 3) {
+              return newCell
+                ? `${newCell}, ${row[newCellIndex]}`
+                : row[newCellIndex];
+            }
+            return newCell; // Leave other columns unchanged
+          });
+        }
+        return newRow; // Leave other rows unchanged
+      });
+    });
+    console.log("Считаем");
 
     setTableData((prevTableData) => {
       const newTableData = [...prevTableData];
@@ -166,16 +233,17 @@ const TablePage = () => {
     });
   };
 
+  // Здесь считаются главные итоги в последней строке
   const calculateFinalTotals = (data) => {
     const sumCellValues = (cell) => {
       return cell
         ? cell.split(",").reduce((acc, value) => {
-            if (value.trim() === "Н") {
-              return acc + 3;
-            } else {
-              return acc + (parseInt(value, 10) || 0);
-            }
-          }, 0)
+          if (value.trim() === "Н") {
+            return acc + 3;
+          } else {
+            return acc + (parseInt(value, 10) || 0);
+          }
+        }, 0)
         : 0;
     };
 
@@ -205,7 +273,7 @@ const TablePage = () => {
     } else {
       if (value >= 4) {
         newValue = "Н";
-        console.log("Новое значение установлено");
+        //console.log("Новое значение установлено");
       }
     }
 
@@ -269,7 +337,7 @@ const TablePage = () => {
 
   // Функция для подсчета количества "Н" и "П" в определённых столбцах, начиная со второй строки
   const countHNInColumns = (arr) => {
-    console.log(arr);
+    //console.log(arr);
     const counts = [0, 0, 0, 0]; // [countHInCol4, countHInCol6, countPInCol4, countPInCol6]
 
     for (let i = 1; i < arr.length; i++) {
@@ -278,7 +346,7 @@ const TablePage = () => {
       const col6Elements = typeof row[5] === "string" ? row[5].split(",") : [];
 
       col4Elements.forEach((element) => {
-        console.log(element);
+        //console.log(element);
         const trimmedElement = element.trim();
         if (trimmedElement === "Н") {
           counts[0]++;
@@ -300,7 +368,7 @@ const TablePage = () => {
     }
 
     checkResult(counts);
-    console.log("Counts: " + counts);
+    //console.log("Counts: " + counts);
   };
 
   useEffect(() => {
@@ -321,7 +389,7 @@ const TablePage = () => {
 
     socket.on("update_judges", (data) => {
       const { connected_judges } = data;
-      console.log("Received update_judges:", connected_judges);
+      //console.log("Received update_judges:", connected_judges);
 
       setJudges((prevJudgeNames) => {
         // Create a new set from previous judge names to efficiently check for duplicates
@@ -349,13 +417,13 @@ const TablePage = () => {
           }
         }
 
-        console.log("Updated judges:", newJudgeNames);
+        //console.log("Updated judges:", newJudgeNames);
         return newJudgeNames;
       });
     });
 
     socket.on("update_table", (data) => {
-      console.log("Received update_table:", data);
+      //console.log("Received update_table:", data);
       const { button_row, button_column, button_index, judge_name } = data;
       const value = `${button_index}`;
       updateTableCell(button_row, button_column, value, judge_name);
@@ -431,7 +499,7 @@ const TablePage = () => {
       </div>
       <table>
         <tbody>
-          {tableData.map((row, rowIndex) => (
+          {mergedTableData.map((row, rowIndex) => (
             <tr key={rowIndex}>
               {row.map((cell, colIndex) => (
                 <td
@@ -461,4 +529,3 @@ const TablePage = () => {
   );
 };
 
-export default TablePage;

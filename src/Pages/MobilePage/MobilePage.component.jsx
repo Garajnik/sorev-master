@@ -5,8 +5,9 @@ import { useLocation } from "react-router-dom";
 import "./MobilePage.css";
 import { io } from "socket.io-client";
 import axios from "axios";
+import styles from "./MobilePage.module.css";
 
-const MobilePage = ({
+export const MobilePage = ({
   redName = "Имя Красного Участника",
   blueName = "Имя Синего Участника",
 }) => {
@@ -171,4 +172,3 @@ MobilePage.propTypes = {
   blueName: PropTypes.string,
 };
 
-export default MobilePage;

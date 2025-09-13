@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "./NewJudge.css";
+import styles from "./NewJudgePage.module.css";
 
-const NewJudge = () => {
+export const NewJudgePage = () => {
   const [judgeName, setJudgeName] = useState("");
   const navigate = useNavigate();
 
@@ -48,4 +48,3 @@ const NewJudge = () => {
   );
 };
 
-export default NewJudge;

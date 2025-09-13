@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import "./StartPage.css";
 import { useNavigate } from "react-router-dom";
+import styles from "./NewRoundPage.module.css";
 
-const StartPage = () => {
+export const NewRoundPage = () => {
   const [inputs, setInputs] = useState({
     field1: "",
     field2: "",
@@ -17,8 +17,7 @@ const StartPage = () => {
     const fetchNames = async () => {
       try {
         const response = await fetch(
-          `http://${
-            window.location.host.split(":")[0] + ":5000"
+          `http://${window.location.host.split(":")[0] + ":5000"
           }/participant_names`
         );
         const data = await response.json();
@@ -73,8 +72,7 @@ const StartPage = () => {
     if (isValid) {
       try {
         const response = await fetch(
-          `http://${
-            window.location.host.split(":")[0] + ":5000"
+          `http://${window.location.host.split(":")[0] + ":5000"
           }/update_participant_names`,
           {
             method: "POST",
@@ -139,4 +137,3 @@ const StartPage = () => {
   );
 };
 
-export default StartPage;
