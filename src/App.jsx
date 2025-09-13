@@ -1,4 +1,4 @@
-import "./App.css";
+import "./global.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { MobilePage, NewJudgePage, NewRoundPage, TablePage } from "./Pages";
 

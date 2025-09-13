@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import "./ButtonRow.css";
+import styles from "./ButtonRow.module.css";
 
 export const ButtonRow = ({
   rowIndex,

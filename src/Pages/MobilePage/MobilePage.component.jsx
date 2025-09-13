@@ -1,8 +1,7 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import ButtonRow from "../Components/ButtonRow";
+import { ButtonRow } from "../../Components";
 import { useLocation } from "react-router-dom";
-import "./MobilePage.css";
 import { io } from "socket.io-client";
 import axios from "axios";
 import styles from "./MobilePage.module.css";
