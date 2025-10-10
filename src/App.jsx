@@ -10,8 +10,7 @@ function App() {
         <Route path="/" element={<NewRoundPage />} />
         <Route path="/mobile" element={<MobilePage />} />
         <Route path="/table" element={<TablePage />} />
-        <Route path="/tableLegacy" element={<TablePageLegacy />} />
-        <Route path="/newjudge" element={<NewJudgePage />} />
+        <Route path="/connect" element={<NewJudgePage />} />
       </Routes>
     </Router>
   );

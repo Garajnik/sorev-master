@@ -13,8 +13,9 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button'
 import DeleteIcon from '@mui/icons-material/Delete';
 import IconButton from '@mui/material/IconButton';
-import styles from "./TablePage.module.css"
+import styles from "./TablePage.module.css";
 import { QRCodeDialog } from '../../Components/QRCodeDialog/QRCodeDialog.component';
+import { DisconnectDialog } from "../../Components/DisconnectDialog/DisconnectDialog.component.jsx";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 function judgeInstance(name, hand, leg, fling, warn) {
@@ -41,22 +42,37 @@ const rows = [
 ]
 
 export const TablePage = () => {
-  const [open, setOpen] = React.useState(false);
+  const [openQR, setOpenQR] = React.useState(false);
+  const [openD, setOpenD] = React.useState(false);
+  const [selectedJudge, setSelectedJudge] = React.useState("")
 
-  const handleClickOpen = () => {
-    setOpen(true);
+  const handleClickOpenQR = () => {
+    setOpenQR(true);
   };
 
-  const handleClose = () => {
-    setOpen(false);
+  const handleCloseQR = () => {
+    setOpenQR(false);
   };
+
+  const handleClickOpenD = (judgeIndex) => {
+    setSelectedJudge(judges[ judgeIndex%4 ])
+    setOpenD(true);
+  };
+
+  const handleCloseD = () => {
+    setOpenD(false);
+  };
+
+  const handleApprove = () => {
+    console.log(`Disconnected judge ${selectedJudge}`)
+  }
 
   const theme = createTheme({
   components: {
     MuiTableCell: {
       styleOverrides: {
         root: {
-            borderRight: "1px solid #000000",
+            borderRight: "1px solid grey",
             "&:last-child":{
               borderRight: "none"
             },
@@ -66,7 +82,7 @@ export const TablePage = () => {
     MuiTableContainer:{
         styleOverrides:{
           root:{
-            border: "1px solid #000000",
+            border: "1px solid grey",
             borderRadius: "15px"
         }
       }
@@ -91,8 +107,8 @@ export const TablePage = () => {
     MuiTableCell: {
       styleOverrides: {
         root: {
-            borderBottom: "1px solid #000000",
-            borderRight: "1px solid #000000",
+            borderBottom: "1px solid grey",
+            borderRight: "1px solid grey",
             "&:last-child":{
               borderRight: "none"
             },
@@ -119,8 +135,8 @@ export const TablePage = () => {
                 <ThemeProvider theme={headerTheme}>
                   {Array.from({length: 7}).map((_, index)=>(
                     <TableCell sx={{padding: 1}} key={index} align='center'>
-                      {index !== 3 ? <IconButton color="error">
-                        <DeleteIcon />
+                      {index !== 3 ? <IconButton color="error" onClick={()=>handleClickOpenD(index)}>
+                        <DeleteIcon  />
                       </IconButton> : ""}
                     </TableCell>
                   ))  }
@@ -133,16 +149,21 @@ export const TablePage = () => {
                   <TableCell>{judges[0]}</TableCell>
                   <TableCell>{judges[1]}</TableCell>
                   <TableCell>{judges[2]}</TableCell>
-                  <TableCell></TableCell>
+                  <TableCell align='center'>
+                    <Fab onClick={handleClickOpenQR} variant="extended" color="primary">
+                      <QrCode2Icon sx={{ mr: 1 }} />
+                      Подключение
+                    </Fab>
+                  </TableCell>
                   <TableCell>{judges[0]}</TableCell>
                   <TableCell>{judges[1]}</TableCell>
                   <TableCell>{judges[2]}</TableCell>
                 </ThemeProvider>
               </TableRow>
               {rows.map((rowName, rowIndex) => (<TableRow key={rowIndex}>
-                {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid #000000"}} key={index}></TableCell>))}
-                <TableCell align='center' sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid #000000"}} key={rowIndex}>{rowName}</TableCell>
-                {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid #000000"}} key={index}></TableCell>))}
+                {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid grey"}} key={index}></TableCell>))}
+                <TableCell align='center' sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid grey"}} key={rowIndex}>{rowName}</TableCell>
+                {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid grey"}} key={index}></TableCell>))}
               </TableRow>))}
               <TableRow>
                 {scores.map((value, index) => (<TableCell align='center' key={index}>{value}</TableCell>))}
@@ -150,13 +171,15 @@ export const TablePage = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Fab onClick={handleClickOpen} variant="extended" color="primary">
-          <QrCode2Icon sx={{ mr: 1 }} />
-          QR Код
-        </Fab>
         <QRCodeDialog
-          open={open}
-          onClose={handleClose}
+          open={openQR}
+          onClose={handleCloseQR}
+        />
+        <DisconnectDialog 
+          open={openD}
+          onApprove={handleApprove}
+          onClose={handleCloseD}
+          judgeName={selectedJudge}
         />
       </div>
     </ThemeProvider>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./NewJudgePage.module.css";
+import { Button, TextField, Typography } from "@mui/material";
 
 export const NewJudgePage = () => {
   const [judgeName, setJudgeName] = useState("");
@@ -29,21 +30,12 @@ export const NewJudgePage = () => {
   };
 
   return (
-    <div className="new-judge-container">
-      <input
-        type="text"
-        placeholder="Введите имя судьи"
-        value={judgeName}
-        onChange={handleInputChange}
-        className="judge-input"
-      />
-      <button
-        onClick={handleSubmit}
-        disabled={!judgeName}
-        className="start-button"
-      >
-        Начать
-      </button>
+    <div className={styles.container}>
+      <form className={styles.form}>
+        <Typography variant="h4">Подключение:</Typography>
+        <TextField id="outlined-basic" label="Введите имя" variant="outlined" />
+        <Button variant="contained" >Подключиться</Button>
+      </form>
     </div>
   );
 };
