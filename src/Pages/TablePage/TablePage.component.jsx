@@ -11,6 +11,8 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button'
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
 import styles from "./TablePage.module.css"
 import { QRCodeDialog } from '../../Components/QRCodeDialog/QRCodeDialog.component';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -27,7 +29,7 @@ const participants = {
 }
 
 const judges = [
-  "Petr", "Vlad", "Alexey"
+  "Владиславов Владислав Владиславович", "Данилов Даниил Даниилович", "Никитов Никита Никитич"
 ];
 
 const scores = [
@@ -68,6 +70,17 @@ export const TablePage = () => {
             borderRadius: "15px"
         }
       }
+    },
+    MuiChip:{
+      styleOverrides:{
+        label:{
+          fontSize: "1.4rem",
+            fontWeight: "400"
+        },    
+        root:{
+          padding: "20px"
+        }
+      }
     }
   },
 });
@@ -94,6 +107,7 @@ export const TablePage = () => {
       <div className={styles.container}>
         <Stack sx={{width: "100%", justifyContent: 'space-between',}} direction="row" spacing={1}>
           <Chip label={participants.redName} color="primary" />
+          <h1>Таблица результатов</h1>
           <Chip label={participants.blueName} color="error" />
         </Stack>
         <TableContainer component={Paper}>
@@ -101,6 +115,19 @@ export const TablePage = () => {
             minWidth: 650,
           }} >
             <TableHead>
+              <TableRow>
+                <ThemeProvider theme={headerTheme}>
+                  {Array.from({length: 7}).map((_, index)=>(
+                    <TableCell sx={{padding: 1}} key={index} align='center'>
+                      {index !== 3 ? <IconButton color="error">
+                        <DeleteIcon />
+                      </IconButton> : ""}
+                    </TableCell>
+                  ))  }
+                </ThemeProvider>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               <TableRow>
                 <ThemeProvider theme={headerTheme}>
                   <TableCell>{judges[0]}</TableCell>
@@ -112,8 +139,6 @@ export const TablePage = () => {
                   <TableCell>{judges[2]}</TableCell>
                 </ThemeProvider>
               </TableRow>
-            </TableHead>
-            <TableBody>
               {rows.map((rowName, rowIndex) => (<TableRow key={rowIndex}>
                 {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid #000000"}} key={index}></TableCell>))}
                 <TableCell align='center' sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid #000000"}} key={rowIndex}>{rowName}</TableCell>
