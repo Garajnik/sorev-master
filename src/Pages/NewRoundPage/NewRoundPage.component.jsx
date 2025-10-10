@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./NewRoundPage.module.css";
+import { Button, TextField, Typography } from "@mui/material";
 
 export const NewRoundPage = () => {
   const [inputs, setInputs] = useState({
@@ -105,33 +106,12 @@ export const NewRoundPage = () => {
   };
 
   return (
-    <div className="container">
-      <form onSubmit={handleSubmit} className="form">
-        <div className="inputGroup">
-          <input
-            type="text"
-            name="field1"
-            value={inputs.field1}
-            onChange={handleChange}
-            placeholder="ФИО Красный"
-            className="input"
-          />
-          {errors.field1 && <div className="error">{errors.field1}</div>}
-        </div>
-        <div className="inputGroup">
-          <input
-            type="text"
-            name="field2"
-            value={inputs.field2}
-            onChange={handleChange}
-            placeholder="ФИО Синий"
-            className="input"
-          />
-          {errors.field2 && <div className="error">{errors.field2}</div>}
-        </div>
-        <button type="submit" className="button-start-page">
-          Начать
-        </button>
+    <div className={styles.container}>
+      <form className={styles.form}>
+        <Typography variant="h4">Создание нового раунда</Typography>
+        <TextField id="outlined-basic" label="ФИО Синий" variant="outlined" />
+        <TextField id="outlined-basic" label="ФИО Красный" variant="outlined" />
+        <Button variant="contained" >Начать</Button>
       </form>
     </div>
   );
