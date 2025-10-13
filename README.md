@@ -1,14 +1,11 @@
 # Installation
 1. Create virtual environment
 ```
-cd path/to/project
-python -m venv envname
-envname\Scripts\activate
+cd ./sorev-master/server
+python -m venv .venv
+source ./.venv/bin/activate
+pip install -r ./requirements.txt
+python app.py
 ```
-2. Install dependensies
-```
-pip install flask
-pip install flask-cors
-pip install flask-socketio
-```
-3. Run `run_server.bat`
+Run with builded GUI:
+Run `run_server.bat`
