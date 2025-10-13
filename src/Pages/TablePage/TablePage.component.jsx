@@ -11,18 +11,13 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button'
-import DeleteIcon from '@mui/icons-material/Delete';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import CachedIcon from '@mui/icons-material/Cached';
 import IconButton from '@mui/material/IconButton';
 import styles from "./TablePage.module.css";
 import { QRCodeDialog } from '../../Components/QRCodeDialog/QRCodeDialog.component';
 import { DisconnectDialog } from "../../Components/DisconnectDialog/DisconnectDialog.component.jsx";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-
-function judgeInstance(name, hand, leg, fling, warn) {
-  return {
-    name, hand, leg, fling, warn
-  }
-}
 
 const participants = {
   redName: "Иван Иванов Иванович",
@@ -30,14 +25,32 @@ const participants = {
 }
 
 const judges = [
-  "Владиславов Владислав Владиславович", "Данилов Даниил Даниилович", "Никитов Никита Никитич"
+  "Петров Петр Петрович",
+  "Иванов Иван Иванович",
+  "Грузин Михаил Михайлович"
 ];
 
-const scores = [
-  "0", "0", "0", "Итог", "0", "0", "0"
-]
+const scores = []
 
-const rows = [
+const createScore = (judgeName, participantColor, score) => {
+  return { judgeName, participantColor, score }
+}
+
+function initializeScores() {
+  for (let i = 0; i < judges.length * 2; i++) {
+    if (i < judges.length) {
+      scores.push(createScore(judges[i], 'blue', 0))
+    }
+    else {
+      scores.push(createScore(judges[i % 2], 'red', 0))
+    }
+  }
+}
+
+initializeScores()
+console.log(scores)
+
+const rows = judges.length === 0 ? ["Нажмите на кнопку, чтобы подключить судей"] : [
   "Удар рукой", "Удар ногой", "Бросок", "Предупреждение"
 ]
 
@@ -55,7 +68,7 @@ export const TablePage = () => {
   };
 
   const handleClickOpenD = (judgeIndex) => {
-    setSelectedJudge(judges[ judgeIndex%4 ])
+    setSelectedJudge(judges[judgeIndex % 4])
     setOpenD(true);
   };
 
@@ -68,60 +81,60 @@ export const TablePage = () => {
   }
 
   const theme = createTheme({
-  components: {
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
+    components: {
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
             borderRight: "1px solid grey",
-            "&:last-child":{
+            "&:last-child": {
               borderRight: "none"
             },
+          },
         },
       },
-    },
-    MuiTableContainer:{
-        styleOverrides:{
-          root:{
+      MuiTableContainer: {
+        styleOverrides: {
+          root: {
             border: "1px solid grey",
             borderRadius: "15px"
+          }
+        }
+      },
+      MuiChip: {
+        styleOverrides: {
+          label: {
+            fontSize: "1.4rem",
+            fontWeight: "400"
+          },
+          root: {
+            padding: "20px"
+          }
         }
       }
     },
-    MuiChip:{
-      styleOverrides:{
-        label:{
-          fontSize: "1.4rem",
-            fontWeight: "400"
-        },    
-        root:{
-          padding: "20px"
-        }
-      }
-    }
-  },
-});
+  });
 
 
   const headerTheme = createTheme({
-  components: {
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
+    components: {
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
             borderBottom: "1px solid grey",
             borderRight: "1px solid grey",
-            "&:last-child":{
+            "&:last-child": {
               borderRight: "none"
             },
+          },
         },
       },
     },
-  },
-});
+  });
 
   return (
     <ThemeProvider theme={theme}>
       <div className={styles.container}>
-        <Stack sx={{width: "100%", justifyContent: 'space-between',}} direction="row" spacing={1}>
+        <Stack sx={{ width: "100%", justifyContent: 'space-between', }} direction="row" spacing={1}>
           <Chip label={participants.redName} color="primary" />
           <h1>Таблица результатов</h1>
           <Chip label={participants.blueName} color="error" />
@@ -133,40 +146,42 @@ export const TablePage = () => {
             <TableHead>
               <TableRow>
                 <ThemeProvider theme={headerTheme}>
-                  {Array.from({length: 7}).map((_, index)=>(
-                    <TableCell sx={{padding: 1}} key={index} align='center'>
-                      {index !== 3 ? <IconButton color="error" onClick={()=>handleClickOpenD(index)}>
-                        <DeleteIcon  />
-                      </IconButton> : ""}
+                  {Array.from({ length: judges.length * 2 + 1 }).map((_, index) => (
+                    <TableCell sx={{ padding: 1 }} key={index} align='center'>
+                      {index !== judges.length ? <IconButton color="error" onClick={() => handleClickOpenD(index)}>
+                        <HighlightOffIcon />
+                      </IconButton> : <Fab onClick={() => { }} variant="extended" color="teal">
+                        <CachedIcon sx={{ mr: 1 }} />
+                        Обновить
+                      </Fab>}
                     </TableCell>
-                  ))  }
+                  ))}
                 </ThemeProvider>
               </TableRow>
             </TableHead>
             <TableBody>
               <TableRow>
                 <ThemeProvider theme={headerTheme}>
-                  <TableCell>{judges[0]}</TableCell>
-                  <TableCell>{judges[1]}</TableCell>
-                  <TableCell>{judges[2]}</TableCell>
+                  {judges.map((value, index) => (<TableCell key={index}>{value}</TableCell>))}
                   <TableCell align='center'>
                     <Fab onClick={handleClickOpenQR} variant="extended" color="primary">
                       <QrCode2Icon sx={{ mr: 1 }} />
                       Подключение
                     </Fab>
                   </TableCell>
-                  <TableCell>{judges[0]}</TableCell>
-                  <TableCell>{judges[1]}</TableCell>
-                  <TableCell>{judges[2]}</TableCell>
+                  {judges.map((value, index) => (<TableCell key={index}>{value}</TableCell>))}
                 </ThemeProvider>
               </TableRow>
               {rows.map((rowName, rowIndex) => (<TableRow key={rowIndex}>
-                {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid grey"}} key={index}></TableCell>))}
-                <TableCell align='center' sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid grey"}} key={rowIndex}>{rowName}</TableCell>
-                {judges.map((_, index) => (<TableCell sx={{borderBottom: rowIndex === 4 ? "none" : "1px solid grey"}} key={index}></TableCell>))}
+                {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}></TableCell>))}
+                <TableCell align='center' sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={rowIndex}>{rowName}</TableCell>
+                {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}></TableCell>))}
               </TableRow>))}
+              {/* Scores  */}
               <TableRow>
-                {scores.map((value, index) => (<TableCell align='center' key={index}>{value}</TableCell>))}
+                {scores.slice(0, scores.length / 2).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
+                {judges.length === 0 ? <></> : <TableCell align='center'>Итог</TableCell>}
+                {scores.slice(scores.length / 2, scores.length).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
               </TableRow>
             </TableBody>
           </Table>
@@ -175,7 +190,7 @@ export const TablePage = () => {
           open={openQR}
           onClose={handleCloseQR}
         />
-        <DisconnectDialog 
+        <DisconnectDialog
           open={openD}
           onApprove={handleApprove}
           onClose={handleCloseD}
