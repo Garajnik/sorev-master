@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./NewJudgePage.module.css";
@@ -12,17 +12,19 @@ export const NewJudgePage = () => {
     setJudgeName(e.target.value);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
       const response = await axios.post(
-        `http://${window.location.host.split(":")[0] + ":5000"
-        }/submit_judge_name`,
+        `http://${window.location.host.split(":")[0] + ":8000"
+        }/connect_judge`,
         {
-          judge_name: judgeName,
+          name: judgeName,
         }
       );
       if (response.status === 200) {
-        navigate("/mobile", { state: { judgeName } });
+        localStorage.setItem("judgeName", judgeName)
+        navigate("/mobile");
       }
     } catch (error) {
       console.error("Error sending judge name to server", error);
@@ -31,10 +33,10 @@ export const NewJudgePage = () => {
 
   return (
     <div className={styles.container}>
-      <form className={styles.form}>
+      <form className={styles.form} onSubmit={handleSubmit}>
         <Typography variant="h4">Подключение:</Typography>
-        <TextField id="outlined-basic" label="Введите имя" variant="outlined" />
-        <Button variant="contained" >Подключиться</Button>
+        <TextField value={judgeName} onChange={(e) => { handleInputChange(e) }} id="outlined-basic" label="Введите имя" variant="outlined" />
+        <Button type="submit" variant="contained" >Подключиться</Button>
       </form>
     </div>
   );

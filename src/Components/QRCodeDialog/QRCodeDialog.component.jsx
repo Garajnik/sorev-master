@@ -19,23 +19,25 @@ export function QRCodeDialog(props) {
       fetchLocalIp()
       console.log(window.location.origin)
     }
-  }, [])
+  })
 
   const fetchLocalIp = async () => {
     try {
       const response = await fetch(
-        `http://${window.location.host.split(":")[0] + ":5000"}/local_ip`
+        `http://${window.location.host.split(":")[0] + ":8000"}/local_ip`
       );
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const data = await response.json();
       const localIp = data.local_ip;
-      setQrCodeUrl(`http://${localIp}:5000/newjudge`);
+      setQrCodeUrl(`http://${localIp}:8000/connect`);
     } catch (error) {
       console.error("Failed to fetch local IP:", error);
     }
   };
+
+
 
   return (
     <Dialog onClose={handleClose} open={open} >

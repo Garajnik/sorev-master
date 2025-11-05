@@ -10,7 +10,6 @@ import Fab from '@mui/material/Fab';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button'
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import CachedIcon from '@mui/icons-material/Cached';
 import IconButton from '@mui/material/IconButton';
@@ -24,40 +23,34 @@ const participants = {
   blueName: "Петров Петр Петрович"
 }
 
-const judges = [
-  "Петров Петр Петрович",
-  "Иванов Иван Иванович",
-  "Грузин Михаил Михайлович"
-];
-
 const scores = []
 
 const createScore = (judgeName, participantColor, score) => {
   return { judgeName, participantColor, score }
 }
 
-function initializeScores() {
-  for (let i = 0; i < judges.length * 2; i++) {
-    if (i < judges.length) {
-      scores.push(createScore(judges[i], 'blue', 0))
-    }
-    else {
-      scores.push(createScore(judges[i % 2], 'red', 0))
-    }
-  }
-}
-
-initializeScores()
-console.log(scores)
-
-const rows = judges.length === 0 ? ["Нажмите на кнопку, чтобы подключить судей"] : [
-  "Удар рукой", "Удар ногой", "Бросок", "Предупреждение"
-]
 
 export const TablePage = () => {
   const [openQR, setOpenQR] = React.useState(false);
   const [openD, setOpenD] = React.useState(false);
   const [selectedJudge, setSelectedJudge] = React.useState("")
+  const [judges, setJudges] = React.useState([])
+
+  const rows = judges.length === 0 ? ["Нажмите на кнопку, чтобы подключить судей"] : [
+    "Удар рукой", "Удар ногой", "Бросок", "Предупреждение"
+  ]
+
+  React.useEffect(() => {
+    for (let i = 0; i < judges.length * 2; i++) {
+      if (i < judges.length) {
+        scores.push(createScore(judges[i], 'blue', 0))
+      }
+      else {
+        scores.push(createScore(judges[i % 2], 'red', 0))
+      }
+    }
+  }, [judges])
+
 
   const handleClickOpenQR = () => {
     setOpenQR(true);
@@ -130,6 +123,17 @@ export const TablePage = () => {
       },
     },
   });
+
+  var ws = new WebSocket(`ws://localhost:8000/ws/mainJudge`);
+  ws.onmessage = function (event) {
+    console.log(event)
+  }
+  ws.onopen = () => { console.log("Connected to WebSocket") }
+  ws.onmessage = function (event) {
+    console.log(event)
+    setJudges(JSON.parse(event.data))
+  }
+  ws
 
   return (
     <ThemeProvider theme={theme}>

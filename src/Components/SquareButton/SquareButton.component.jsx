@@ -13,10 +13,9 @@ const CustomButton = styled(Button)(({ theme }) => ({
 }));
 
 export function SquareButton(props) {
-  console.log(props.badgenumber)
   return (
     <Badge badgeContent={props.badgenumber} color="secondary">
-      <CustomButton onClick={() => { navigator.vibrate(80) }} {...props}></CustomButton>
+      <CustomButton  {...props}></CustomButton>
     </Badge>
   )
 }
