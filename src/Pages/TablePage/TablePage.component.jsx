@@ -11,7 +11,6 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import CachedIcon from '@mui/icons-material/Cached';
 import IconButton from '@mui/material/IconButton';
 import styles from "./TablePage.module.css";
 import { QRCodeDialog } from '../../Components/QRCodeDialog/QRCodeDialog.component';
@@ -23,11 +22,6 @@ const participants = {
   blueName: "Петров Петр Петрович"
 }
 
-const scores = []
-
-const createScore = (judgeName, participantColor, score) => {
-  return { judgeName, participantColor, score }
-}
 
 
 export const TablePage = () => {
@@ -35,22 +29,40 @@ export const TablePage = () => {
   const [openD, setOpenD] = React.useState(false);
   const [selectedJudge, setSelectedJudge] = React.useState("")
   const [judges, setJudges] = React.useState([])
+  const [scores, setScores] = React.useState([])
 
   const rows = judges.length === 0 ? ["Нажмите на кнопку, чтобы подключить судей"] : [
     "Удар рукой", "Удар ногой", "Бросок", "Предупреждение"
   ]
 
+  const createScore = (judgeName, participantColor, score) => {
+    return { judgeName, participantColor, score }
+  }
+
   React.useEffect(() => {
-    for (let i = 0; i < judges.length * 2; i++) {
-      if (i < judges.length) {
-        scores.push(createScore(judges[i], 'blue', 0))
-      }
-      else {
-        scores.push(createScore(judges[i % 2], 'red', 0))
-      }
+    var ws = new WebSocket(`ws://localhost:8000/ws/mainJudge`);
+    ws.onopen = () => { console.log("Connected to WebSocket") }
+    ws.onmessage = function (event) {
+      setJudges(JSON.parse(event.data))
     }
+    // fillScores()
+    return () =>
+      ws.close()
+  }, [])
+
+
+  React.useEffect(() => {
+    fillScores()
   }, [judges])
 
+  const fillScores = () => {
+    setScores([])
+    const currentScores = []
+    for (let i = 0; i < judges.length * 2; i++) {
+      currentScores.push(createScore(judges[i % judges.length], i < judges.length - 1 / 2 ? 'blue' : 'red', 0))
+    }
+    setScores(currentScores)
+  }
 
   const handleClickOpenQR = () => {
     setOpenQR(true);
@@ -61,7 +73,7 @@ export const TablePage = () => {
   };
 
   const handleClickOpenD = (judgeIndex) => {
-    setSelectedJudge(judges[judgeIndex % 4])
+    setSelectedJudge(judges[judgeIndex % (judges.length + 1)])
     setOpenD(true);
   };
 
@@ -70,6 +82,8 @@ export const TablePage = () => {
   };
 
   const handleApprove = () => {
+    const request = new Request(`http://localhost:8000/kick_judge/${selectedJudge}`)
+    fetch(request).then(response => console.log(response))
     console.log(`Disconnected judge ${selectedJudge}`)
   }
 
@@ -124,16 +138,6 @@ export const TablePage = () => {
     },
   });
 
-  var ws = new WebSocket(`ws://localhost:8000/ws/mainJudge`);
-  ws.onmessage = function (event) {
-    console.log(event)
-  }
-  ws.onopen = () => { console.log("Connected to WebSocket") }
-  ws.onmessage = function (event) {
-    console.log(event)
-    setJudges(JSON.parse(event.data))
-  }
-  ws
 
   return (
     <ThemeProvider theme={theme}>
@@ -154,10 +158,7 @@ export const TablePage = () => {
                     <TableCell sx={{ padding: 1 }} key={index} align='center'>
                       {index !== judges.length ? <IconButton color="error" onClick={() => handleClickOpenD(index)}>
                         <HighlightOffIcon />
-                      </IconButton> : <Fab onClick={() => { }} variant="extended" color="teal">
-                        <CachedIcon sx={{ mr: 1 }} />
-                        Обновить
-                      </Fab>}
+                      </IconButton> : <></>}
                     </TableCell>
                   ))}
                 </ThemeProvider>
@@ -177,11 +178,10 @@ export const TablePage = () => {
                 </ThemeProvider>
               </TableRow>
               {rows.map((rowName, rowIndex) => (<TableRow key={rowIndex}>
-                {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}></TableCell>))}
+                {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}>{`${rowIndex} ${index} blue`}</TableCell>))}
                 <TableCell align='center' sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={rowIndex}>{rowName}</TableCell>
-                {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}></TableCell>))}
+                {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}>{`${rowIndex} ${index} red`}</TableCell>))}
               </TableRow>))}
-              {/* Scores  */}
               <TableRow>
                 {scores.slice(0, scores.length / 2).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
                 {judges.length === 0 ? <></> : <TableCell align='center'>Итог</TableCell>}

@@ -1,6 +1,6 @@
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { SquareButton } from "../../Components";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const participants = {
   blueName: "Петров Петр Петрович",
@@ -9,34 +9,24 @@ const participants = {
 
 export function MobilePage() {
   const [judgeName, setJudgeName] = useState("")
+  const ws = useRef(null)
 
   useEffect(() => {
     setJudgeName(localStorage.getItem("judgeName"))
-
   }, [])
 
-  const connectWebSocket = () => {
-    try {
-      const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/${judgeName}`);
+  useEffect(() => {
+    console.log(judgeName)
+    ws.current = new WebSocket(`ws://${window.location.hostname}:8000/ws/${judgeName}`);
 
-      ws.onopen = () => {
-        console.log("Connected to server");
-      };
-    }
-    catch {
-      console.error("Couldn't connect to WebSocket")
-    }
+    ws.onopen = () => {
+      console.log("Connected to server");
+    };
+  })
 
-  };
-
-  var ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/${localStorage.getItem("judgeName")}`);
-  ws.onmessage = function (event) {
-    console.log(event)
-  }
-  ws.onopen = () => { console.log("Connected to WebSocket") }
-
-  const handleScoreClick = (color, type, score) => {
-    ws.send(`${color} ${type} ${score}`)
+  const handleScoreClick = (punch, color, score) => {
+    const request = new Request(`http://localhost:8000/send_score/${punch}/${color}/${score}`)
+    fetch(request).then(response => console.log(response))
   }
 
   return (
@@ -47,7 +37,7 @@ export function MobilePage() {
         <Typography color="error">{participants.redName}</Typography>
       </Stack>
       <Stack spacing={2} width={"100%"} direction={"row"} alignItems={"center"} justifyContent={"space-between"}>
-        <SquareButton onClick={() => handleScoreClick("red", "1", "1")} badgenumber={1} variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick(0, 0, 1)} badgenumber={1} variant="contained">1</SquareButton>
         <SquareButton badgenumber={1} variant="contained">2</SquareButton>
         <SquareButton variant="contained" sx={{ visibility: 'hidden', }}></SquareButton>
         <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
@@ -85,7 +75,7 @@ export function MobilePage() {
       <Stack direction={"row"} width={"100%"} justifyContent={"space-between"} alignItems={"center"}>
         <Button sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
         <Typography width={"20vw"}>Предупреждение</Typography>
-        <Button onClick={connectWebSocket} color="error" sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+        <Button color="error" sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
       </Stack>
     </Box >
   )

@@ -37,8 +37,6 @@ export function QRCodeDialog(props) {
     }
   };
 
-
-
   return (
     <Dialog onClose={handleClose} open={open} >
       <DialogTitle>Отсканируйте QR для подключения:</DialogTitle>

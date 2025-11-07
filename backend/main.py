@@ -11,6 +11,7 @@ from pydantic import BaseModel
 import os
 import socket
 import json
+from typing import Dict
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
@@ -32,9 +33,6 @@ class JudgeRequest(BaseModel):
     name: str
 
 
-connected_judges = {}
-
-
 def get_local_ip():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         try:
@@ -52,12 +50,12 @@ async def get_local_ip_route():
 
 @app.post("/connect_judge")
 async def connect_judge():
-    return connected_judges
+    return ""
 
 
 @app.get("/judges")
 def read_judges():
-    return connected_judges
+    return ""
 
 
 @app.get("/items/{item_id}")
@@ -65,33 +63,55 @@ def read_item(item_id: int, q: Union[str, None] = None):
     return {"item_id": item_id, "q": q}
 
 
+@app.get("/kick_judge/{judgeName}")
+async def kick_judge(judgeName):
+    await manager.disconnect(judgeName)
+
+
+@app.get("/send_score/{punch}/{color}/{score}")
+async def send_score(punch, color, score):
+    data = str(punch) + str(color) + str(score)
+    await manager.broadcast(data)
+
+
 class ConnectionManager:
     def __init__(self):
-        self.active_connections: list[WebSocket] = []
-        self.main_judge: WebSocket
-        self.connected_judges = set()
+        self.connected_judges: Dict[str, WebSocket] = {}
+        self.main_judge_ws: WebSocket
 
     async def connect(self, websocket: WebSocket, judgeName):
+        if judgeName in self.connected_judges:
+            await websocket.close(code=4001)
+            return False
         await websocket.accept()
         if judgeName == "mainJudge":
-            self.main_judge = websocket
+            self.main_judge_ws = websocket
         else:
-            self.active_connections.append(websocket)
-            self.connected_judges.add(judgeName)
+            self.connected_judges[judgeName] = websocket
+        print(
+            f"{judgeName} connected. Judges online: {list(self.connected_judges.keys())}"
+        )
+        await manager.update_connected_judges()
+        return True
 
-    def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+    async def disconnect(self, judgeName):
+        if judgeName == "mainJudge":
+            return
+        if judgeName in self.connected_judges:
+            del self.connected_judges[judgeName]
+            print(
+                f"{judgeName} disconnected. Remaining: {list(self.connected_judges.keys())}"
+            )
+        await manager.update_connected_judges()
+
+    async def update_connected_judges(self):
+        await self.main_judge_ws.send_json(list(self.connected_judges.keys()))
 
     async def send_personal_message(self, message: str, websocket: WebSocket):
         await websocket.send_text(message)
 
-    async def update_connected_judges(self):
-        judges = json.dumps(list(self.connected_judges))
-        await self.main_judge.send_json(judges)
-
     async def broadcast(self, message: str):
-        for connection in self.active_connections:
-            await connection.send_text(message)
+        await self.main_judge_ws.send_text(message)
 
 
 manager = ConnectionManager()
@@ -105,17 +125,15 @@ async def spa(full_path: str):
     return HTMLResponse(open("../dist/index.html", "r", encoding="utf-8").read())
 
 
-@app.websocket("/ws/{client_name}")
-async def websocket_endpoint(websocket: WebSocket, client_name: str):
-    await manager.connect(websocket, client_name)
-    await manager.broadcast(f"Client {client_name} has joined the group")
-    await manager.broadcast(f"Current connections: {manager.connected_judges}")
-    await manager.update_connected_judges()
+@app.websocket("/ws/{judgeName}")
+async def websocket_endpoint(websocket: WebSocket, judgeName: str):
+    connected = await manager.connect(websocket, judgeName)
+    if not connected:
+        return
     try:
         while True:
             data = await websocket.receive_text()
             await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client {client_name} says: {data}")
+            await manager.broadcast(f"Client {judgeName} says: {data}")
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        await manager.broadcast(f"Client {client_name} left the chat")
+        await manager.disconnect(judgeName)
