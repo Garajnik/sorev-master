@@ -1,4 +1,4 @@
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
+import { Badge, Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { SquareButton } from "../../Components";
 import { useState, useEffect, useRef } from "react";
 
@@ -25,8 +25,13 @@ export function MobilePage() {
   })
 
   const handleScoreClick = (punch, color, score) => {
-    const request = new Request(`http://localhost:8000/send_score/${punch}/${color}/${score}`)
-    fetch(request).then(response => console.log(response))
+    const data = { judge: judgeName, punch: punch, color: color, score: score }
+    console.log(JSON.stringify(data))
+    fetch("http://localhost:8000/send_score", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(response => response.json()).then(data => console.log('Success: ', data))
   }
 
   return (
@@ -37,7 +42,7 @@ export function MobilePage() {
         <Typography color="error">{participants.redName}</Typography>
       </Stack>
       <Stack spacing={2} width={"100%"} direction={"row"} alignItems={"center"} justifyContent={"space-between"}>
-        <SquareButton onClick={() => handleScoreClick(0, 0, 1)} badgenumber={1} variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("hand", "blue", 1)} badgenumber={1} variant="contained">1</SquareButton>
         <SquareButton badgenumber={1} variant="contained">2</SquareButton>
         <SquareButton variant="contained" sx={{ visibility: 'hidden', }}></SquareButton>
         <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
@@ -65,7 +70,7 @@ export function MobilePage() {
         <SquareButton badgenumber={1} variant="contained">2</SquareButton>
         <SquareButton badgenumber={1} variant="contained">3</SquareButton>
         <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
-        <Typography width={"20vw"}>Удар ногой</Typography>
+        <Typography width={"20vw"}>Бросок</Typography>
         <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
         <SquareButton badgenumber={1} color="error" variant="contained">3</SquareButton>
         <SquareButton badgenumber={1} color="error" variant="contained">2</SquareButton>
@@ -73,9 +78,13 @@ export function MobilePage() {
       </Stack>
       <Divider sx={{ width: "100%", border: "1px solid grey" }} />
       <Stack direction={"row"} width={"100%"} justifyContent={"space-between"} alignItems={"center"}>
-        <Button sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+        <Badge color="warning">
+          <Button sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+        </Badge>
         <Typography width={"20vw"}>Предупреждение</Typography>
-        <Button color="error" sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+        <Badge color="warning">
+          <Button color="error" sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+        </Badge>
       </Stack>
     </Box >
   )

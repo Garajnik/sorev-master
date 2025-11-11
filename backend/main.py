@@ -13,8 +13,10 @@ import socket
 import json
 from typing import Dict
 from fastapi.responses import JSONResponse
+from fastapi_offline import FastAPIOffline
 
-app = FastAPI()
+# app = FastAPI()
+app = FastAPIOffline()
 
 app.mount("/assets", StaticFiles(directory="../dist/assets/"), name="assets")
 
@@ -29,8 +31,16 @@ app.add_middleware(
 )
 
 
-class JudgeRequest(BaseModel):
-    name: str
+class Score(BaseModel):
+    color: str
+    judge: str
+    punch: str
+    score: int
+
+
+# TODO: Refactor data to use this class
+class ConnectedJudges(BaseModel):
+    judges: str
 
 
 def get_local_ip():
@@ -48,30 +58,14 @@ async def get_local_ip_route():
     return JSONResponse(content={"local_ip": get_local_ip()})
 
 
-@app.post("/connect_judge")
-async def connect_judge():
-    return ""
+@app.get("/kick_judge/{judge}")
+async def kick_judge(judge: str):
+    await manager.disconnect(judge)
 
 
-@app.get("/judges")
-def read_judges():
-    return ""
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.get("/kick_judge/{judgeName}")
-async def kick_judge(judgeName):
-    await manager.disconnect(judgeName)
-
-
-@app.get("/send_score/{punch}/{color}/{score}")
-async def send_score(punch, color, score):
-    data = str(punch) + str(color) + str(score)
-    await manager.broadcast(data)
+@app.post("/send_score")
+async def send_score(score: Score):
+    await manager.send_score(score)
 
 
 class ConnectionManager:
@@ -91,27 +85,29 @@ class ConnectionManager:
         print(
             f"{judgeName} connected. Judges online: {list(self.connected_judges.keys())}"
         )
-        await manager.update_connected_judges()
+        await self.update_connected_judges()
         return True
 
     async def disconnect(self, judgeName):
-        if judgeName == "mainJudge":
-            return
         if judgeName in self.connected_judges:
             del self.connected_judges[judgeName]
             print(
                 f"{judgeName} disconnected. Remaining: {list(self.connected_judges.keys())}"
             )
-        await manager.update_connected_judges()
+        await self.update_connected_judges()
 
     async def update_connected_judges(self):
-        await self.main_judge_ws.send_json(list(self.connected_judges.keys()))
+        await self.main_judge_ws.send_json(
+            {"data": "judgeupd", "judges": list(self.connected_judges.keys())}
+        )
 
-    async def send_personal_message(self, message: str, websocket: WebSocket):
-        await websocket.send_text(message)
-
-    async def broadcast(self, message: str):
-        await self.main_judge_ws.send_text(message)
+    async def send_score(self, score: Score):
+        await self.main_judge_ws.send_json(
+            {
+                "data": "score",
+                "score": score.dict(),
+            }
+        )
 
 
 manager = ConnectionManager()
@@ -132,8 +128,6 @@ async def websocket_endpoint(websocket: WebSocket, judgeName: str):
         return
     try:
         while True:
-            data = await websocket.receive_text()
-            await manager.send_personal_message(f"You wrote: {data}", websocket)
-            await manager.broadcast(f"Client {judgeName} says: {data}")
+            await websocket.receive_text()
     except WebSocketDisconnect:
         await manager.disconnect(judgeName)

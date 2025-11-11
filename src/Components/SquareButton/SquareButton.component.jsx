@@ -14,7 +14,7 @@ const CustomButton = styled(Button)(({ theme }) => ({
 
 export function SquareButton(props) {
   return (
-    <Badge badgeContent={props.badgenumber} color="secondary">
+    <Badge badgeContent={props.badgenumber} color="warning">
       <CustomButton  {...props}></CustomButton>
     </Badge>
   )
