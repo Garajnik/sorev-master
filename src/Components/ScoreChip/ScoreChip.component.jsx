@@ -6,17 +6,19 @@ export function ScoreChip(props) {
   const { number } = props
 
   const CustomChip = styled(Chip)(() => ({
-    width: 50,
-    height: 50,
-    minWidth: 0,
+    width: 30,
+    height: 30,
     padding: 0,
-    borderRadius: 10,
-    fontSize: "1.3rem",
+    borderRadius: 8,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     color: "black",
-    background: '#ffcf33'
+    background: '#ffcf33',
+    '& .MuiChip-label': {
+      fontSize: '1rem',
+      textOverflow: "unset"
+    },
   }));
 
   return (

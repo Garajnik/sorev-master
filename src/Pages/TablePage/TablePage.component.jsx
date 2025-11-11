@@ -30,29 +30,16 @@ export const TablePage = () => {
   const [selectedJudge, setSelectedJudge] = React.useState("")
   const [judges, setJudges] = React.useState([])
   const [columns, setColumns] = React.useState([])
+  const [_, setJudgesDict] = React.useState({});
+  const judgesDictRef = React.useRef({});
 
-  const rows = judges.length === 0 ? ["Нажмите на кнопку, чтобы подключить судей"] : [
-    "Удар рукой", "Удар ногой", "Бросок", "Предупреждение"
-  ]
-
-  const createColumn = (judgeName, participantColor) => {
-    return { judgeName, participantColor }
-  }
-
-
-  const getJudges = () => {
-    const judgeList = {}
-    judges.forEach((value, index) => judgeList[value] = `judge${index + 1}`)
-    return judgeList
-  }
-
-  const scores = {
+  const initialScores = {
     "blue": {
       "judge1": {
-        "hand": [1, 2, 3],
-        "leg": [5],
-        "throw": [6],
-        "warn": ["П"],
+        "hand": [],
+        "leg": [],
+        "throw": [],
+        "warn": [],
       },
       "judge2": {
         "hand": [],
@@ -69,9 +56,9 @@ export const TablePage = () => {
     },
     "red": {
       "judge1": {
-        "hand": [4, 5, 5],
-        "leg": [1],
-        "throw": [2],
+        "hand": [],
+        "leg": [],
+        "throw": [],
         "warn": [],
       },
       "judge2": {
@@ -88,39 +75,43 @@ export const TablePage = () => {
       }
     }
   }
+  const [scores, setScores] = React.useState(initialScores);
 
-  function getScoreElement(color, judge, punch) {
-    const colors = {
-      0: "blue",
-      1: "red"
-    }
+  const rows = judges.length === 0 ? ["Нажмите на кнопку, чтобы подключить судей"] : [
+    "Удар рукой", "Удар ногой", "Бросок", "Предупреждение"
+  ]
 
-    const judges = getJudges()
-
-    const punches = {
-      0: "hand",
-      1: "leg",
-      2: "throw",
-      3: "warn",
-    }
-    return scores[colors[color]][judges[judge]][punches[punch]]
+  const createColumn = (judgeName, participantColor) => {
+    return { judgeName, participantColor }
   }
 
-  function setScoreElement(color, judge, punch, score) {
-    const colors = {
-      0: "blue",
-      1: "red"
-    }
-    const judges = judgeList
+  const getScoreElement = (colorIdx, judgeName, punchIdx) => {
+    const colors = ['blue', 'red'];
+    const punches = ['hand', 'leg', 'throw', 'warn'];
+    const color = colors[colorIdx];
+    const judgeKey = judgesDictRef.current[judgeName];
+    if (!judgeKey) return [];
+    return (scores[color] && scores[color][judgeKey] && scores[color][judgeKey][punches[punchIdx]]) || [];
+  }
 
-    const punches = {
-      0: "hand",
-      1: "leg",
-      2: "throw",
-      3: "warn",
-    }
-    console.log(color, judge, punch, score)
-    scores[colors[color]][judges[judge]][punches[punch]] = score
+  const setScoreElement = (color, judgeName, punch, scoreValue) => {
+    const judgeKey = judgesDictRef.current[judgeName];
+
+    setScores(prev => {
+      const prevColor = prev[color] || {};
+      const prevJudge = prevColor[judgeKey] || { hand: [], leg: [], throw: [], warn: [] };
+
+      return {
+        ...prev,
+        [color]: {
+          ...prevColor,
+          [judgeKey]: {
+            ...prevJudge,
+            [punch]: [...(prevJudge[punch] || []), scoreValue]
+          }
+        }
+      };
+    });
   }
 
   React.useEffect(() => {
@@ -129,9 +120,9 @@ export const TablePage = () => {
     ws.onmessage = function (event) {
       let data = JSON.parse(event.data)
       // Checking if we receiving score or connection
-      console.log(data)
       if (data.data === "judgeupd") {
         setJudges(data.judges)
+        getJudges(data.judges)
       }
       else if (data.data === "score") {
         console.log(data.score)
@@ -145,6 +136,14 @@ export const TablePage = () => {
   React.useEffect(() => {
     fillScores()
   }, [judges])
+
+  const getJudges = (judgesArr) => {
+    const map = {};
+    judgesArr.forEach((name, idx) => { map[name] = `judge${idx + 1}` });
+    setJudgesDict(map);
+    judgesDictRef.current = map; // важно — для колбэков
+    return map;
+  }
 
   const fillScores = () => {
     setColumns([])

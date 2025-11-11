@@ -27,7 +27,7 @@ export function MobilePage() {
   const handleScoreClick = (punch, color, score) => {
     const data = { judge: judgeName, punch: punch, color: color, score: score }
     console.log(JSON.stringify(data))
-    fetch("http://localhost:8000/send_score", {
+    fetch(`http://${window.location.hostname}:8000/send_score`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -43,38 +43,38 @@ export function MobilePage() {
       </Stack>
       <Stack spacing={2} width={"100%"} direction={"row"} alignItems={"center"} justifyContent={"space-between"}>
         <SquareButton onClick={() => handleScoreClick("hand", "blue", 1)} badgenumber={1} variant="contained">1</SquareButton>
-        <SquareButton badgenumber={1} variant="contained">2</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("hand", "blue", 2)} badgenumber={1} variant="contained">2</SquareButton>
         <SquareButton variant="contained" sx={{ visibility: 'hidden', }}></SquareButton>
-        <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("hand", "blue", 4)} badgenumber={1} color="success" variant="contained">Н</SquareButton>
         <Typography width={"20vw"}>Удар рукой</Typography>
-        <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("hand", "red", 4)} badgenumber={1} color="success" variant="contained">Н</SquareButton>
         <SquareButton variant="contained" sx={{ visibility: 'hidden', }}></SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">2</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("hand", "red", 2)} badgenumber={1} color="error" variant="contained">2</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("hand", "red", 1)} badgenumber={1} color="error" variant="contained">1</SquareButton>
       </Stack>
       <Divider sx={{ width: "100%", border: "1px solid grey" }} />
       <Stack spacing={2} width={"100%"} direction={"row"} alignItems={"center"} justifyContent={"space-between"}>
-        <SquareButton badgenumber={1} variant="contained">1</SquareButton>
-        <SquareButton badgenumber={1} variant="contained">2</SquareButton>
-        <SquareButton badgenumber={1} variant="contained">3</SquareButton>
-        <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "blue", 1)} badgenumber={1} variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "blue", 2)} badgenumber={1} variant="contained">2</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "blue", 3)} badgenumber={1} variant="contained">3</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "blue", 4)} badgenumber={1} color="success" variant="contained">Н</SquareButton>
         <Typography component="h1" width={"20vw"}>Удар ногой</Typography>
-        <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">3</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">2</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "red", 4)} badgenumber={1} color="success" variant="contained">Н</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "red", 3)} badgenumber={1} color="error" variant="contained">3</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "red", 2)} badgenumber={1} color="error" variant="contained">2</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("leg", "red", 1)} badgenumber={1} color="error" variant="contained">1</SquareButton>
       </Stack>
       <Divider sx={{ width: "100%", border: "1px solid grey" }} />
       <Stack spacing={2} width={"100%"} direction={"row"} alignItems={"center"} justifyContent={"space-between"}>
-        <SquareButton badgenumber={1} variant="contained">1</SquareButton>
-        <SquareButton badgenumber={1} variant="contained">2</SquareButton>
-        <SquareButton badgenumber={1} variant="contained">3</SquareButton>
-        <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "blue", 1)} badgenumber={1} variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "blue", 2)} badgenumber={1} variant="contained">2</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "blue", 3)} badgenumber={1} variant="contained">3</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "blue", 4)} badgenumber={1} color="success" variant="contained">Н</SquareButton>
         <Typography width={"20vw"}>Бросок</Typography>
-        <SquareButton badgenumber={1} color="success" variant="contained">Н</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">3</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">2</SquareButton>
-        <SquareButton badgenumber={1} color="error" variant="contained">1</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "red", 4)} badgenumber={1} color="success" variant="contained">Н</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "red", 3)} badgenumber={1} color="error" variant="contained">3</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "red", 2)} badgenumber={1} color="error" variant="contained">2</SquareButton>
+        <SquareButton onClick={() => handleScoreClick("throw", "red", 1)} badgenumber={1} color="error" variant="contained">1</SquareButton>
       </Stack>
       <Divider sx={{ width: "100%", border: "1px solid grey" }} />
       <Stack direction={"row"} width={"100%"} justifyContent={"space-between"} alignItems={"center"}>

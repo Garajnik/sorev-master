@@ -53,6 +53,11 @@ def get_local_ip():
     return local_ip
 
 
+@app.post("/connect_judge")
+async def connect_judge():
+    return ""
+
+
 @app.get("/local_ip")
 async def get_local_ip_route():
     return JSONResponse(content={"local_ip": get_local_ip()})
