@@ -1,3 +1,7 @@
+//TODO: Create start/end round button
+//TODO: Make score calculation (local scores and shared ones)
+//TODO: Make participants fetch from server
+
 import * as React from 'react'
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -17,12 +21,7 @@ import { QRCodeDialog } from '../../Components/QRCodeDialog/QRCodeDialog.compone
 import { DisconnectDialog } from "../../Components/DisconnectDialog/DisconnectDialog.component.jsx";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ScoreChip } from '../../Components/index.js';
-
-// TODO: Create participants logic
-const participants = {
-  redName: "Иван Иванов Иванович",
-  blueName: "Петров Петр Петрович"
-}
+import { ScoreCell } from '../../Components/ScoreCell/ScoreCell.component.jsx';
 
 export const TablePage = () => {
   const [openQR, setOpenQR] = React.useState(false);
@@ -32,6 +31,10 @@ export const TablePage = () => {
   const [columns, setColumns] = React.useState([])
   const [_, setJudgesDict] = React.useState({});
   const judgesDictRef = React.useRef({});
+  const [participants, setParticipants] = React.useState({
+    redName: "",
+    blueName: ""
+  })
 
   const initialScores = {
     "blue": {
@@ -107,15 +110,28 @@ export const TablePage = () => {
           ...prevColor,
           [judgeKey]: {
             ...prevJudge,
-            [punch]: [...(prevJudge[punch] || []), scoreValue]
+            [punch]: [...(prevJudge[punch] || []), evaluateScoreNumber(scoreValue)]
           }
         }
       };
     });
   }
 
+  function evaluateScoreNumber(scoreValue) {
+    switch (scoreValue) {
+      case 4:
+        return "H"
+      case 5:
+        return "П"
+      default:
+        return scoreValue;
+    }
+  }
+
   React.useEffect(() => {
-    var ws = new WebSocket(`ws://localhost:8000/ws/mainJudge`);
+    fetchParticipants()
+    console.log(participants)
+    const ws = new WebSocket(`ws://${window.location.host.split(":")[0] + ":8000"}/ws/mainJudge`);
     ws.onopen = () => { console.log("Connected to WebSocket") }
     ws.onmessage = function (event) {
       let data = JSON.parse(event.data)
@@ -129,19 +145,41 @@ export const TablePage = () => {
         setScoreElement(data.score.color, data.score.judge, data.score.punch, data.score.score)
       }
     }
+    // const request = new Request(`http://${window.location.host.split(":")[0] + ":8000"}/get_participants`)
+    // fetch(request).then(response => JSON.parse(response).then(text => console.log(text)))
     return () =>
       ws.close()
+
   }, [])
 
   React.useEffect(() => {
     fillScores()
   }, [judges])
 
+  async function fetchParticipants() {
+    fetch(`http://${window.location.host.split(":")[0] + ":8000"}/participants`,
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      },
+    )
+      .then(response => response.json())
+      .then(response => {
+        const responseObj = JSON.parse(response)
+        setParticipants({
+          blueName: responseObj.blue,
+          redName: responseObj.red
+        })
+      })
+  }
+
   const getJudges = (judgesArr) => {
     const map = {};
     judgesArr.forEach((name, idx) => { map[name] = `judge${idx + 1}` });
     setJudgesDict(map);
-    judgesDictRef.current = map; // важно — для колбэков
+    judgesDictRef.current = map;
     return map;
   }
 
@@ -183,6 +221,7 @@ export const TablePage = () => {
         styleOverrides: {
           root: {
             borderRight: "1px solid grey",
+            width: "min-content",
             "&:last-child": {
               borderRight: "none"
             },
@@ -268,7 +307,7 @@ export const TablePage = () => {
               </TableRow>
               {rows.map((rowName, rowIndex) => (<TableRow key={rowIndex}>
                 {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}>
-                  {getScoreElement(0, judges[index], rowIndex).map((value, index) => (<ScoreChip key={index + value} number={value} />))}
+                  <ScoreCell>{getScoreElement(0, judges[index], rowIndex)}</ScoreCell>
                 </TableCell>))}
                 <TableCell align='center' sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={rowIndex}>{rowName}</TableCell>
                 {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}>
@@ -276,8 +315,13 @@ export const TablePage = () => {
                 </TableCell>))}
               </TableRow>))}
               <TableRow>
+                {columns.slice(0, columns.length / 2).map((value, index) => (<TableCell sx={{ borderBottom: "1px solid grey" }} align='center' key={index}>{value.score}</TableCell>))}
+                {judges.length === 0 ? <></> : <TableCell sx={{ borderBottom: "1px solid grey" }} align='center'>Итог</TableCell>}
+                {columns.slice(columns.length / 2, columns.length).map((value, index) => (<TableCell sx={{ borderBottom: "1px solid grey" }} align='center' key={index}>{value.score}</TableCell>))}
+              </TableRow>
+              <TableRow>
                 {columns.slice(0, columns.length / 2).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
-                {judges.length === 0 ? <></> : <TableCell align='center'>Итог</TableCell>}
+                {judges.length === 0 ? <></> : <TableCell align='center'>Общий счёт</TableCell>}
                 {columns.slice(columns.length / 2, columns.length).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
               </TableRow>
             </TableBody>

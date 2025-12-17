@@ -1,27 +1,64 @@
+//TODO: Create dialogue window if scores for both participants are equal when the trial ends.
+//TODO: Узнать, что делать с предупреждениями
+
 import { Badge, Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { SquareButton } from "../../Components";
 import { useState, useEffect, useRef } from "react";
 
-const participants = {
-  blueName: "Петров Петр Петрович",
-  redName: "Иван Иванов Иванович",
-}
-
 export function MobilePage() {
   const [judgeName, setJudgeName] = useState("")
-  const ws = useRef(null)
+  const [participants, setParticipants] = useState({
+    blueName: "",
+    redName: ""
+  })
+
+  const ws = useRef(null);
+
 
   useEffect(() => {
     setJudgeName(localStorage.getItem("judgeName"))
   }, [])
 
+  async function fetchParticipants() {
+    fetch(`http://${window.location.host.split(":")[0] + ":8000"}/participants`,
+      {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+        }
+      },
+    )
+      .then(response => response.json())
+      .then(response => {
+        const responseObj = JSON.parse(response)
+        setParticipants({
+          blueName: responseObj.blue,
+          redName: responseObj.red
+        })
+      })
+  }
+
+
   useEffect(() => {
-    console.log(judgeName)
-    ws.current = new WebSocket(`ws://${window.location.hostname}:8000/ws/${judgeName}`);
+    const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/${judgeName}`);
 
     ws.onopen = () => {
       console.log("Connected to server");
     };
+
+    ws.onmessage = (event) => {
+      let data = JSON.parse(event.data)
+      if (data.data === "participantupd") {
+        console.log(data.participants)
+        setParticipants(
+          {
+            blueName: data.participants[0][1],
+            redName: data.participants[1][1]
+          }
+        )
+      }
+    }
+    return () => ws.close()
   })
 
   const handleScoreClick = (punch, color, score) => {
@@ -79,11 +116,11 @@ export function MobilePage() {
       <Divider sx={{ width: "100%", border: "1px solid grey" }} />
       <Stack direction={"row"} width={"100%"} justifyContent={"space-between"} alignItems={"center"}>
         <Badge color="warning">
-          <Button sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+          <Button onClick={() => handleScoreClick("warn", "blue", 5)} sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
         </Badge>
         <Typography width={"20vw"}>Предупреждение</Typography>
         <Badge color="warning">
-          <Button color="error" sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
+          <Button onClick={() => handleScoreClick("warn", "red", 5)} color="error" sx={{ height: 50, fontSize: "1rem" }} variant="contained">Предупреждение</Button>
         </Badge>
       </Stack>
     </Box >

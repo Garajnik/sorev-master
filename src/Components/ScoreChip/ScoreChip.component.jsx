@@ -22,8 +22,8 @@ export function ScoreChip(props) {
   }));
 
   return (
-    <Stack direction="row" spacing={1}>
+    <>
       {number ? <CustomChip variant='filled' color='warning' label={number} /> : <></>}
-    </Stack>
+    </>
   );
 }

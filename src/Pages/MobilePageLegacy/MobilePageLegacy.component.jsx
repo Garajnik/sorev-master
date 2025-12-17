@@ -4,7 +4,6 @@ import { ButtonRow } from "../../Components";
 import { useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
 import axios from "axios";
-import styles from "./MobilePage.module.css";
 
 export const MobilePage = ({
   redName = "Имя Красного Участника",
@@ -30,7 +29,8 @@ export const MobilePage = ({
     const fetchNames = async () => {
       try {
         const response = await axios.get(
-          `http://${window.location.host.split(":")[0] + ":5000"
+          `http://${
+            window.location.host.split(":")[0] + ":5000"
           }/participant_names`
         );
         const data = response.data;
@@ -107,7 +107,8 @@ export const MobilePage = ({
 
     try {
       await axios.post(
-        `http://${window.location.host.split(":")[0] + ":5000"
+        `http://${
+          window.location.host.split(":")[0] + ":5000"
         }/handle_button_click`,
         postData
       );
@@ -170,4 +171,3 @@ MobilePage.propTypes = {
   redName: PropTypes.string,
   blueName: PropTypes.string,
 };
-

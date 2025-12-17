@@ -73,10 +73,30 @@ async def send_score(score: Score):
     await manager.send_score(score)
 
 
+class Participants(BaseModel):
+    blue: str
+    red: str
+
+    def toJson(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
+
+
+@app.post("/connect_participants")
+async def connect_participants(participants: Participants):
+    await manager.connect_participant(participants)
+    return "Successfully connected participants"
+
+
+@app.get("/participants")
+def get_participants():
+    return manager.get_participants()
+
+
 class ConnectionManager:
     def __init__(self):
         self.connected_judges: Dict[str, WebSocket] = {}
         self.main_judge_ws: WebSocket
+        self.participants: Participants = Participants(blue="", red="")
 
     async def connect(self, websocket: WebSocket, judgeName):
         if judgeName in self.connected_judges:
@@ -88,7 +108,7 @@ class ConnectionManager:
         else:
             self.connected_judges[judgeName] = websocket
         print(
-            f"{judgeName} connected. Judges online: {list(self.connected_judges.keys())}"
+            f"{judgeName} connected. Judges online: {list(self.connected_judges.keys())}\n"
         )
         await self.update_connected_judges()
         return True
@@ -97,8 +117,10 @@ class ConnectionManager:
         if judgeName in self.connected_judges:
             del self.connected_judges[judgeName]
             print(
-                f"{judgeName} disconnected. Remaining: {list(self.connected_judges.keys())}"
+                f"{judgeName} disconnected. Remaining: {list(self.connected_judges.keys())}\n"
             )
+        if judgeName == "mainJudge":
+            return
         await self.update_connected_judges()
 
     async def update_connected_judges(self):
@@ -110,9 +132,25 @@ class ConnectionManager:
         await self.main_judge_ws.send_json(
             {
                 "data": "score",
-                "score": score.dict(),
+                "score": score.model_dump(),
             }
         )
+
+    async def connect_participant(self, participants: Participants):
+        self.participants = participants
+        print(f"Connected Participants {participants}\n")
+        for key in self.connected_judges.keys():
+            if key == "mainJudge":
+                break
+            await self.connected_judges[key].send_json(
+                {"data": "participantupd", "participants": list(self.participants)}
+            )
+
+    def get_participants(self):
+        if self.participants:
+            return self.participants.toJson()
+        else:
+            return "No participants"
 
 
 manager = ConnectionManager()

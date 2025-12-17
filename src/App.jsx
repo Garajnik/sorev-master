@@ -1,7 +1,6 @@
 import "./global.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { MobilePage, NewJudgePage, NewRoundPage, TablePage } from "./Pages";
-import { TablePageLegacy } from "./Pages/TablePageLegacy/TablePageLegacy.component";
 
 function App() {
   return (

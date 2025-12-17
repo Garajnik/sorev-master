@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "./NewJudgePage.module.css";
@@ -16,14 +16,13 @@ export const NewJudgePage = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        `http://${window.location.host.split(":")[0] + ":8000"
-        }/connect_judge`,
+        `http://${window.location.host.split(":")[0] + ":8000"}/connect_judge`,
         {
           name: judgeName,
         }
       );
       if (response.status === 200) {
-        localStorage.setItem("judgeName", judgeName)
+        localStorage.setItem("judgeName", judgeName);
         navigate("/mobile");
       }
     } catch (error) {
@@ -35,10 +34,19 @@ export const NewJudgePage = () => {
     <div className={styles.container}>
       <form className={styles.form} onSubmit={handleSubmit}>
         <Typography variant="h4">Подключение:</Typography>
-        <TextField value={judgeName} onChange={(e) => { handleInputChange(e) }} id="outlined-basic" label="Введите имя" variant="outlined" />
-        <Button type="submit" variant="contained" >Подключиться</Button>
+        <TextField
+          value={judgeName}
+          onChange={(e) => {
+            handleInputChange(e);
+          }}
+          id="outlined-basic"
+          label="Введите имя"
+          variant="outlined"
+        />
+        <Button type="submit" variant="contained">
+          Подключиться
+        </Button>
       </form>
     </div>
   );
 };
-

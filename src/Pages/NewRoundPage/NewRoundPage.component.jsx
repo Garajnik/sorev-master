@@ -5,8 +5,8 @@ import { Button, TextField, Typography } from "@mui/material";
 
 export const NewRoundPage = () => {
   const [inputs, setInputs] = useState({
-    field1: "",
-    field2: "",
+    blue: "",
+    red: "",
   });
 
   const [errors, setErrors] = useState({
@@ -18,21 +18,21 @@ export const NewRoundPage = () => {
     const fetchNames = async () => {
       try {
         const response = await fetch(
-          `http://${window.location.host.split(":")[0] + ":5000"
+          `http://${window.location.host.split(":")[0] + ":8000"
           }/participant_names`
         );
         const data = await response.json();
-        // setInputs({
-        //   field1: data.redName,
-        //   field2: data.blueName,
-        // });
+        setInputs({
+          field1: data.redName,
+          field2: data.blueName,
+        });
       } catch (error) {
         console.error("Error fetching participant names:", error);
       }
     };
 
     fetchNames();
-  }, []);
+  },);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -48,11 +48,11 @@ export const NewRoundPage = () => {
     let field1Error = "";
     let field2Error = "";
 
-    if (!inputs.field1) {
+    if (!inputs.blue) {
       field1Error = "Введите ФИО синего участника";
     }
 
-    if (!inputs.field2) {
+    if (!inputs.red) {
       field2Error = "Введите ФИО красного участника";
     }
 
@@ -73,31 +73,22 @@ export const NewRoundPage = () => {
     if (isValid) {
       try {
         const response = await fetch(
-          `http://${window.location.host.split(":")[0] + ":5000"
-          }/update_participant_names`,
+          `http://${window.location.host.split(":")[0] + ":8000"
+          }/connect_participants`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              redName: inputs.field1,
-              blueName: inputs.field2,
-            }),
+            body: JSON.stringify(inputs),
           }
         );
         const data = await response.json();
         console.log(data);
-        // Navigate to another page or display a success message
         navigate("/table");
       } catch (error) {
         console.error("Error submitting data:", error);
       }
-      // Clear the form
-      setInputs({
-        field1: "",
-        field2: "",
-      });
       setErrors({
         field1: "",
         field2: "",
@@ -109,9 +100,9 @@ export const NewRoundPage = () => {
     <div className={styles.container}>
       <form className={styles.form}>
         <Typography variant="h4">Создание нового раунда</Typography>
-        <TextField id="outlined-basic" label="ФИО Синий" variant="outlined" />
-        <TextField id="outlined-basic" label="ФИО Красный" variant="outlined" />
-        <Button variant="contained" >Начать</Button>
+        <TextField error={errors.field1} helperText={errors.field1} name="blue" id="outlined-basic" label="ФИО Синий" variant="outlined" onChange={handleChange} />
+        <TextField error={errors.field2} helperText={errors.field2} name="red" id="outlined-basic" label="ФИО Красный" variant="outlined" onChange={handleChange} />
+        <Button variant="contained" onClick={handleSubmit}>Начать</Button>
       </form>
     </div>
   );
