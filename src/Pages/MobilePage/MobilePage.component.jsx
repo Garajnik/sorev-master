@@ -14,7 +14,6 @@ export function MobilePage() {
 
   const ws = useRef(null);
 
-
   useEffect(() => {
     setJudgeName(localStorage.getItem("judgeName"))
   }, [])
