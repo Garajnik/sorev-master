@@ -1,6 +1,6 @@
 //TODO: Create start/end round button
-//TODO: Make score calculation (local scores and shared ones)
 //TODO: Make participants fetch from server
+//TODO: After judge disconnects - delete his scores too (or cache them so he would be able to restore them)
 
 import * as React from 'react'
 import Table from '@mui/material/Table';
@@ -22,6 +22,7 @@ import { DisconnectDialog } from "../../Components/DisconnectDialog/DisconnectDi
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { ScoreChip } from '../../Components/index.js';
 import { ScoreCell } from '../../Components/ScoreCell/ScoreCell.component.jsx';
+import { Typography } from '@mui/material';
 
 export const TablePage = () => {
   const [openQR, setOpenQR] = React.useState(false);
@@ -35,6 +36,7 @@ export const TablePage = () => {
     redName: "",
     blueName: ""
   })
+  const [scoreSums, setScoreSums] = React.useState(0);
 
   const initialScores = {
     "blue": {
@@ -128,20 +130,71 @@ export const TablePage = () => {
     }
   }
 
+  function getScoreSum(colorIdx, judgeKey) {
+    const colors = ['blue', 'red'];
+    const punches = ['hand', 'leg', 'throw', 'warn'];
+    const judges = ['judge1', 'judge2', 'judge3'];
+    const judgeName = judges[judgeKey]
+    const color = colors[colorIdx];
+    let sum = 0;
+    for (let i = 0; i < 4; i++) {
+      if (scores[color][judgeName][punches[i]][0]) {
+        sum = scores[color][judgeName][punches[i]].reduce((previous, current) => {
+          if (current === "H") {
+            return previous + 3;
+          }
+          if (isNaN(current)) {
+            return previous;
+          }
+          return previous + current;
+        }, sum)
+      }
+    }
+    return sum
+  }
+
+  function calcScore(colorIdx, judgeKey) {
+    const colors = ['blue', 'red'];
+    const color = colors[colorIdx];
+    const enemyColor = colorIdx === 0 ? 1 : 0
+    if (getScoreSum(colorIdx, judgeKey) > getScoreSum(enemyColor, judgeKey)) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  function calcFinalScore(colorIdx) {
+    let sumBlue = 0;
+    let sumRed = 0;
+    for (let i = 0; i < 3; i++) {
+      sumBlue += calcScore(0, i)
+      sumRed += calcScore(1, i)
+    }
+    console.log(sumBlue, sumRed)
+    if (colorIdx === 0) {
+      return sumBlue
+    }
+    else {
+      return sumRed;
+    }
+  }
+
   React.useEffect(() => {
     fetchParticipants()
-    console.log(participants)
+    // console.log(participants)
     const ws = new WebSocket(`ws://${window.location.host.split(":")[0] + ":8000"}/ws/mainJudge`);
     ws.onopen = () => { console.log("Connected to WebSocket") }
     ws.onmessage = function (event) {
       let data = JSON.parse(event.data)
-      // Checking if we receiving score or connection
+      // Checking if we`re receiving either score or connection
       if (data.data === "judgeupd") {
         setJudges(data.judges)
         getJudges(data.judges)
       }
       else if (data.data === "score") {
-        console.log(data.score)
+        // console.log(data.score)
         setScoreElement(data.score.color, data.score.judge, data.score.punch, data.score.score)
       }
     }
@@ -272,7 +325,7 @@ export const TablePage = () => {
       <div className={styles.container}>
         <Stack sx={{ width: "100%", justifyContent: 'space-between', }} direction="row" spacing={1}>
           <Chip label={participants.redName} color="primary" />
-          <h1>Таблица результатов</h1>
+          <Typography variant='h4'>Таблица результатов</Typography>
           <Chip label={participants.blueName} color="error" />
         </Stack>
         <TableContainer component={Paper}>
@@ -315,18 +368,23 @@ export const TablePage = () => {
                 </TableCell>))}
               </TableRow>))}
               <TableRow>
-                {columns.slice(0, columns.length / 2).map((value, index) => (<TableCell sx={{ borderBottom: "1px solid grey" }} align='center' key={index}>{value.score}</TableCell>))}
-                {judges.length === 0 ? <></> : <TableCell sx={{ borderBottom: "1px solid grey" }} align='center'>Итог</TableCell>}
-                {columns.slice(columns.length / 2, columns.length).map((value, index) => (<TableCell sx={{ borderBottom: "1px solid grey" }} align='center' key={index}>{value.score}</TableCell>))}
+                {columns.slice(0, columns.length / 2).map((value, index) => (<TableCell sx={{ borderBottom: "1px solid grey" }} align='center' key={index}>{getScoreSum(0, index)}</TableCell>))}
+                {judges.length === 0 ? <></> : <TableCell sx={{ borderBottom: "1px solid grey" }} align='center'>Сумма очков</TableCell>}
+                {columns.slice(columns.length / 2, columns.length).map((value, index) => (<TableCell sx={{ borderBottom: "1px solid grey" }} align='center' key={index}>{getScoreSum(1, index)}</TableCell>))}
               </TableRow>
               <TableRow>
-                {columns.slice(0, columns.length / 2).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
-                {judges.length === 0 ? <></> : <TableCell align='center'>Общий счёт</TableCell>}
-                {columns.slice(columns.length / 2, columns.length).map((value, index) => (<TableCell align='center' key={index}>{value.score}</TableCell>))}
+                {columns.slice(0, columns.length / 2).map((value, index) => (<TableCell align='center' key={index}>{calcScore(0, index)}</TableCell>))}
+                {judges.length === 0 ? <></> : <TableCell align='center'>Счёт</TableCell>}
+                {columns.slice(columns.length / 2, columns.length).map((value, index) => (<TableCell align='center' key={index}>{calcScore(1, index)}</TableCell>))}
               </TableRow>
             </TableBody>
           </Table>
         </TableContainer>
+        <div style={{ display: 'flex', width: '100%', justifyContent: 'center' }}>
+          <Typography variant='h2'>{calcFinalScore(0)}</Typography>
+          <Typography variant='h2'>:</Typography>
+          <Typography variant='h2'>{calcFinalScore(1)}</Typography>
+        </div>
         <QRCodeDialog
           open={openQR}
           onClose={handleCloseQR}
