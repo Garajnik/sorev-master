@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import QRCode from "qrcode.react";
 import { useNavigate } from "react-router-dom";
+import { fetchLocalIp } from "../../api/legacyApi";
 // import styles from "./TablePageLegacy.module.css";
 
 export const TablePageLegacy = () => {
@@ -429,7 +430,9 @@ export const TablePageLegacy = () => {
       updateTableCell(button_row, button_column, value, judge_name);
     });
 
-    fetchLocalIp();
+    fetchLocalIp()
+      .then((localIp) => setQrCodeUrl(`http://${localIp}:5000/newjudge`))
+      .catch((error) => console.error("Failed to fetch local IP:", error));
 
     return () => {
       socket.disconnect();
@@ -449,22 +452,6 @@ export const TablePageLegacy = () => {
       return updatedTableData;
     });
   }, [judgeNames]);
-
-  const fetchLocalIp = async () => {
-    try {
-      const response = await fetch(
-        `http://${window.location.host.split(":")[0] + ":5000"}/local_ip`
-      );
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      const data = await response.json();
-      const localIp = data.local_ip;
-      setQrCodeUrl(`http://${localIp}:5000/newjudge`);
-    } catch (error) {
-      console.error("Failed to fetch local IP:", error);
-    }
-  };
 
   // Устанавливаем текст для завершения поединка
   const endRound = (text) => {

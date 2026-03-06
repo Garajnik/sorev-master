@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { connectJudge } from "../../api/api";
 import styles from "./NewJudgePage.module.css";
 import { Button, TextField, Typography } from "@mui/material";
 
@@ -15,13 +15,8 @@ export const NewJudgePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        `http://${window.location.host.split(":")[0] + ":8000"}/connect_judge`,
-        {
-          name: judgeName,
-        }
-      );
-      if (response.status === 200) {
+      const response = await connectJudge(judgeName);
+      if (response.ok) {
         localStorage.setItem("judgeName", judgeName);
         navigate("/mobile");
       }

@@ -3,6 +3,7 @@
 //TODO: After judge disconnects - delete his scores too (or cache them so he would be able to restore them)
 
 import * as React from 'react'
+import { fetchParticipants, kickJudge } from '../../api/api';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -182,7 +183,7 @@ export const TablePage = () => {
   }
 
   React.useEffect(() => {
-    fetchParticipants()
+    fetchAndSetParticipants()
     // console.log(participants)
     const ws = new WebSocket(`ws://${window.location.host.split(":")[0] + ":8000"}/ws/mainJudge`);
     ws.onopen = () => { console.log("Connected to WebSocket") }
@@ -209,23 +210,12 @@ export const TablePage = () => {
     fillScores()
   }, [judges])
 
-  async function fetchParticipants() {
-    fetch(`http://${window.location.host.split(":")[0] + ":8000"}/participants`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        }
-      },
-    )
-      .then(response => response.json())
-      .then(response => {
-        const responseObj = JSON.parse(response)
-        setParticipants({
-          blueName: responseObj.blue,
-          redName: responseObj.red
-        })
-      })
+  async function fetchAndSetParticipants() {
+    const responseObj = await fetchParticipants();
+    setParticipants({
+      blueName: responseObj.blue,
+      redName: responseObj.red,
+    });
   }
 
   const getJudges = (judgesArr) => {
@@ -263,8 +253,7 @@ export const TablePage = () => {
   };
 
   const handleApprove = () => {
-    const request = new Request(`http://localhost:8000/kick_judge/${selectedJudge}`)
-    fetch(request).then(response => console.log(response))
+    kickJudge(selectedJudge).then(response => console.log(response))
     console.log(`Disconnected judge ${selectedJudge}`)
   }
 

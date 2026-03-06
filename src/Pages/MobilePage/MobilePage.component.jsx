@@ -4,6 +4,7 @@
 import { Badge, Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { SquareButton } from "../../Components";
 import { useState, useEffect, useRef } from "react";
+import { fetchParticipants, postScore } from "../../api/api";
 
 export function MobilePage() {
   const [judgeName, setJudgeName] = useState("")
@@ -18,23 +19,12 @@ export function MobilePage() {
     setJudgeName(localStorage.getItem("judgeName"))
   }, [])
 
-  async function fetchParticipants() {
-    fetch(`http://${window.location.host.split(":")[0] + ":8000"}/participants`,
-      {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-        }
-      },
-    )
-      .then(response => response.json())
-      .then(response => {
-        const responseObj = JSON.parse(response)
-        setParticipants({
-          blueName: responseObj.blue,
-          redName: responseObj.red
-        })
-      })
+  async function fetchAndSetParticipants() {
+    const responseObj = await fetchParticipants();
+    setParticipants({
+      blueName: responseObj.blue,
+      redName: responseObj.red,
+    });
   }
 
 
@@ -63,11 +53,7 @@ export function MobilePage() {
   const handleScoreClick = (punch, color, score) => {
     const data = { judge: judgeName, punch: punch, color: color, score: score }
     console.log(JSON.stringify(data))
-    fetch(`http://${window.location.hostname}:8000/send_score`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    }).then(response => response.json()).then(data => console.log('Success: ', data))
+    postScore(data).then(data => console.log('Success: ', data))
   }
 
   return (

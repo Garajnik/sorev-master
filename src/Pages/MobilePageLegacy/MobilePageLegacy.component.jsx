@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { ButtonRow } from "../../Components";
 import { useLocation } from "react-router-dom";
 import { io } from "socket.io-client";
-import axios from "axios";
+import { fetchParticipantNames, postButtonClick } from "../../api/legacyApi";
 
 export const MobilePage = ({
   redName = "Имя Красного Участника",
@@ -28,12 +28,7 @@ export const MobilePage = ({
   useEffect(() => {
     const fetchNames = async () => {
       try {
-        const response = await axios.get(
-          `http://${
-            window.location.host.split(":")[0] + ":5000"
-          }/participant_names`
-        );
-        const data = response.data;
+        const data = await fetchParticipantNames();
         setNames({
           redName: data.redName,
           blueName: data.blueName,
@@ -106,12 +101,7 @@ export const MobilePage = ({
     navigator.vibrate(100);
 
     try {
-      await axios.post(
-        `http://${
-          window.location.host.split(":")[0] + ":5000"
-        }/handle_button_click`,
-        postData
-      );
+      await postButtonClick(postData);
       console.log("Data sent successfully:", postData);
     } catch (error) {
       console.error("Error sending data:", error);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { fetchParticipantNames, connectParticipants } from "../../api/api";
 import styles from "./NewRoundPage.module.css";
 import { Button, TextField, Typography } from "@mui/material";
 
@@ -17,11 +18,7 @@ export const NewRoundPage = () => {
   useEffect(() => {
     const fetchNames = async () => {
       try {
-        const response = await fetch(
-          `http://${window.location.host.split(":")[0] + ":8000"
-          }/participant_names`
-        );
-        const data = await response.json();
+        const data = await fetchParticipantNames();
         setInputs({
           field1: data.redName,
           field2: data.blueName,
@@ -72,18 +69,7 @@ export const NewRoundPage = () => {
     const isValid = validate();
     if (isValid) {
       try {
-        const response = await fetch(
-          `http://${window.location.host.split(":")[0] + ":8000"
-          }/connect_participants`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(inputs),
-          }
-        );
-        const data = await response.json();
+        const data = await connectParticipants(inputs);
         console.log(data);
         navigate("/table");
       } catch (error) {

@@ -1,0 +1,47 @@
+const BASE_URL = `http://${window.location.hostname}:8000`;
+
+export const fetchParticipants = async () => {
+  const response = await fetch(`${BASE_URL}/participants`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  const data = await response.json();
+  return JSON.parse(data);
+};
+
+export const postScore = async (data) => {
+  const response = await fetch(`${BASE_URL}/send_score`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
+
+export const connectJudge = async (name) => {
+  const response = await fetch(`${BASE_URL}/connect_judge`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return response;
+};
+
+export const fetchParticipantNames = async () => {
+  const response = await fetch(`${BASE_URL}/participant_names`);
+  return response.json();
+};
+
+export const connectParticipants = async (data) => {
+  const response = await fetch(`${BASE_URL}/connect_participants`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
+
+export const kickJudge = async (judgeName) => {
+  const response = await fetch(`${BASE_URL}/kick_judge/${judgeName}`);
+  return response;
+};
