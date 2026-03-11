@@ -1,8 +1,335 @@
-.container{
-  height: 80vh;
+.container {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 24px;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+/* Top header bar with participant names */
+.headerBar {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.participantSide {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.blueSide {
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
+}
+
+.redSide {
+  background: linear-gradient(135deg, #e53935, #c62828);
+}
+
+.headerCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 32px;
+  background: #263238;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+/* Main table wrapper */
+.tableWrapper {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  background: #fff;
+}
+
+/* Judge header row */
+.judgeHeader {
+  display: flex;
+  width: 100%;
+  background: #f5f5f5;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.judgeCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #37474f;
+  border-right: 1px solid #e0e0e0;
+}
+
+.judgeCell:last-child {
+  border-right: none;
+}
+
+.centerCell {
+  flex: 0 0 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 8px;
+  border-right: 1px solid #e0e0e0;
+}
+
+/* Score rows area */
+.scoreArea {
+  display: flex;
+  flex-direction: column;
+}
+
+.scoreRow {
+  display: flex;
+  width: 100%;
+  border-bottom: 1px solid #eeeeee;
+}
+
+.scoreRow:last-child {
+  border-bottom: none;
+}
+
+.scoreCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  min-height: 48px;
+  border-right: 1px solid #f0f0f0;
+}
+
+.scoreCell:last-child {
+  border-right: none;
+}
+
+.rowLabel {
+  flex: 0 0 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #455a64;
+  background: #fafafa;
+  border-right: 1px solid #f0f0f0;
+  border-left: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+/* Sum and Score footer rows */
+.footerRow {
+  display: flex;
+  width: 100%;
+  border-top: 2px solid #e0e0e0;
+}
+
+.footerCell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 8px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #263238;
+  border-right: 1px solid #e0e0e0;
+}
+
+.footerCell:last-child {
+  border-right: none;
+}
+
+.footerLabel {
+  flex: 0 0 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #78909c;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #fafafa;
+  border-right: 1px solid #e0e0e0;
+  border-left: 1px solid #e0e0e0;
+}
+
+/* Final score display */
+.finalScore {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.scoreBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.scoreBoxBlue {
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
+}
+
+.scoreBoxRed {
+  background: linear-gradient(135deg, #e53935, #c62828);
+}
+
+.scoreDivider {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #90a4ae;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  color: #90a4ae;
+  gap: 16px;
+}
+
+.emptyStateText {
+  font-size: 1.1rem;
+  color: #78909c;
+}
+
+/* Kick button */
+.kickBtn {
+  color: #e57373;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.kickBtn:hover {
+  color: #c62828;
+}
+
+/* Connect button */
+.connectBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1565c0, #1e88e5);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.connectBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.4);
+}
+
+.connectBtn:active {
+  transform: translateY(0);
+}
+
+/* Round controls (timer + start/end button) */
+.roundControls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.timerDisplay {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #90a4ae;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+
+.timerActive {
+  color: #1e88e5;
+}
+
+.roundBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  letter-spacing: 0.3px;
+}
+
+.roundBtn:hover {
+  transform: translateY(-1px);
+}
+
+.roundBtn:active {
+  transform: translateY(0);
+}
+
+.roundBtnStart {
+  background: linear-gradient(135deg, #2e7d32, #43a047);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.35);
+}
+
+.roundBtnEnd {
+  background: linear-gradient(135deg, #c62828, #e53935);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(198, 40, 40, 0.35);
+}
+
+/* Blue side subtle tint */
+.blueTint {
+  background: rgba(21, 101, 192, 0.03);
+}
+
+/* Red side subtle tint */
+.redTint {
+  background: rgba(229, 57, 53, 0.03);
 }

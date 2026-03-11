@@ -68,6 +68,26 @@ async def kick_judge(judge: str):
     await manager.disconnect(judge, kicked=True)
 
 
+@app.post("/round_end")
+async def round_end():
+    await manager.broadcast_round_end()
+
+
+class TiebreakerVote(BaseModel):
+    judge: str
+    winner: str
+
+
+@app.post("/tiebreaker")
+async def tiebreaker(vote: TiebreakerVote):
+    await manager.send_tiebreaker_vote(vote)
+
+
+@app.get("/scores")
+async def get_scores():
+    return JSONResponse(content=manager.get_scores())
+
+
 @app.post("/send_score")
 async def send_score(score: Score):
     await manager.send_score(score)
@@ -97,6 +117,7 @@ class ConnectionManager:
         self.connected_judges: Dict[str, WebSocket] = {}
         self.main_judge_ws: WebSocket
         self.participants: Participants = Participants(blue="", red="")
+        self.scores: Dict[str, Dict] = {}  # {judgeName: {color: {punch: [values]}}}
 
     async def connect(self, websocket: WebSocket, judgeName):
         if judgeName in self.connected_judges:
@@ -133,13 +154,45 @@ class ConnectionManager:
             {"data": "judgeupd", "judges": list(self.connected_judges.keys())}
         )
 
+    def store_score(self, score: Score):
+        judge = score.judge
+        color = score.color
+        punch = score.punch
+        value = score.score
+
+        if judge not in self.scores:
+            self.scores[judge] = {
+                "blue": {"hand": [], "leg": [], "throw": [], "warn": [], "tiebreak": []},
+                "red": {"hand": [], "leg": [], "throw": [], "warn": [], "tiebreak": []},
+            }
+
+        if punch not in self.scores[judge][color]:
+            self.scores[judge][color][punch] = []
+        self.scores[judge][color][punch].append(value)
+
+    def get_scores(self):
+        return self.scores
+
     async def send_score(self, score: Score):
+        self.store_score(score)
         await self.main_judge_ws.send_json(
             {
                 "data": "score",
                 "score": score.model_dump(),
             }
         )
+
+    async def send_tiebreaker_vote(self, vote: TiebreakerVote):
+        await self.main_judge_ws.send_json(
+            {"data": "tiebreaker", "judge": vote.judge, "winner": vote.winner}
+        )
+
+    async def broadcast_round_end(self):
+        for ws in self.connected_judges.values():
+            try:
+                await ws.send_json({"data": "roundend"})
+            except Exception:
+                pass
 
     async def connect_participant(self, participants: Participants):
         self.participants = participants

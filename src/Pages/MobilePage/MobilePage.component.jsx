@@ -1,9 +1,8 @@
-//TODO: Create dialogue window if scores for both participants are equal when the trial ends.
 //TODO: Узнать, что делать с предупреждениями
 
-import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Divider, Stack, Typography } from "@mui/material";
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Stack, Typography } from "@mui/material";
 import { SquareButton } from "../../Components";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { postScore } from "../../api/api";
 
@@ -14,6 +13,9 @@ export function MobilePage() {
     redName: ""
   })
   const [kicked, setKicked] = useState(false)
+  const [roundEnded, setRoundEnded] = useState(false)
+  const [tiebreaker, setTiebreaker] = useState(false)
+  const localScoresRef = useRef({ blue: 0, red: 0 })
 
   const navigate = useNavigate();
 
@@ -40,6 +42,13 @@ export function MobilePage() {
         )
       } else if (data.data === "kicked") {
         setKicked(true)
+      } else if (data.data === "roundend") {
+        if (localScoresRef.current.blue === localScoresRef.current.red) {
+          setTiebreaker(true)
+        } else {
+          setRoundEnded(true)
+        }
+        localScoresRef.current = { blue: 0, red: 0 }
       }
     }
     return () => ws.close()
@@ -47,8 +56,21 @@ export function MobilePage() {
 
   const handleScoreClick = (punch, color, score) => {
     const data = { judge: judgeName, punch: punch, color: color, score: score }
-    console.log(JSON.stringify(data))
     postScore(data).then(data => console.log('Success: ', data))
+
+    // Track score locally to detect ties at round end.
+    // score 4 = Н modifier (+3 bonus on top of base already counted)
+    // score 5 = П warning (no points)
+    const delta = score === 4 ? 3 : score === 5 ? 0 : score
+    localScoresRef.current = {
+      ...localScoresRef.current,
+      [color]: localScoresRef.current[color] + delta
+    }
+  }
+
+  const handleTiebreakerChoice = (color) => {
+    postScore({ judge: judgeName, punch: "tiebreak", color, score: 1 })
+    setTiebreaker(false)
   }
 
   return (
@@ -59,6 +81,30 @@ export function MobilePage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => navigate("/connect")} variant="contained">Ок</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={roundEnded}>
+        <DialogContent>
+          <DialogContentText>Раунд завершён</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRoundEnded(false)} variant="contained">Ок</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={tiebreaker}>
+        <DialogTitle>Раунд завершён</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Очки равны. Выберите участника, которому присудить победу в раунде.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleTiebreakerChoice("blue")} variant="contained" color="primary">
+            {participants.blueName || "Синий"}
+          </Button>
+          <Button onClick={() => handleTiebreakerChoice("red")} variant="contained" color="error">
+            {participants.redName || "Красный"}
+          </Button>
         </DialogActions>
       </Dialog>
       <Stack direction={"row"} spacing={5} width={"100%"} justifyContent={"space-between"}>

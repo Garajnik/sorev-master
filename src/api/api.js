@@ -9,6 +9,14 @@ export const fetchParticipants = async () => {
   return JSON.parse(data);
 };
 
+export const fetchScores = async () => {
+  const response = await fetch(`${BASE_URL}/scores`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  return response.json();
+};
+
 export const postScore = async (data) => {
   const response = await fetch(`${BASE_URL}/send_score`, {
     method: "POST",
@@ -43,5 +51,19 @@ export const connectParticipants = async (data) => {
 
 export const kickJudge = async (judgeName) => {
   const response = await fetch(`${BASE_URL}/kick_judge/${judgeName}`);
+  return response;
+};
+
+export const postRoundEnd = async () => {
+  const response = await fetch(`${BASE_URL}/round_end`, { method: "POST" });
+  return response;
+};
+
+export const postTiebreaker = async (judgeName, winner) => {
+  const response = await fetch(`${BASE_URL}/tiebreaker`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ judge: judgeName, winner }),
+  });
   return response;
 };

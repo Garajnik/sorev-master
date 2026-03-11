@@ -4,9 +4,10 @@ import Stack from '@mui/material/Stack';
 
 export function ScoreChip(props) {
   const { number } = props
+  const hasH = String(number).endsWith('H');
 
   const CustomChip = styled(Chip)(() => ({
-    width: 30,
+    width: 'fit-content',
     height: 30,
     padding: 0,
     borderRadius: 8,
@@ -14,7 +15,7 @@ export function ScoreChip(props) {
     alignItems: 'center',
     justifyContent: 'center',
     color: "black",
-    background: '#ffcf33',
+    background: hasH ? '#4caf50' : '#ffcf33',
     '& .MuiChip-label': {
       fontSize: '1rem',
       textOverflow: "unset"
@@ -23,7 +24,7 @@ export function ScoreChip(props) {
 
   return (
     <>
-      {number ? <CustomChip variant='filled' color='warning' label={number} /> : <></>}
+      {number ? <CustomChip variant='filled' label={number} /> : <></>}
     </>
   );
 }
