@@ -1,11 +1,57 @@
-# Installation
-1. Create virtual environment
+# SorevMaster
+
+Система оценки и подсчета очков в режиме реального времени для соревновательных спортивных мероприятий (боевые виды спорта). Несколько судей оценивают участников с помощью своих мобильных устройств, а главный судья отслеживает совокупные результаты на панели управления в режиме реального времени.
+
+## Технологии
+
+- **Фронтенд**: React 18, Vite, Material-UI, React Router, Socket.io-client, Axios
+- **Бэкенд**: FastAPI (Python), WebSockets
+
+## Структура проекта
+
 ```
-cd ./sorev-master/server
-python -m venv .venv
-source ./.venv/bin/activate
-pip install -r ./requirements.txt
-python app.py
+sorev-master/
+├── backend/          # Сервер FastAPI (main.py, requirements.txt)
+├── src/              # Исходный код фронтенда на React
+│   ├── Pages/        # NewRoundPage, TablePage, MobilePage, NewJudgePage
+│   ├── Components/   # Переиспользуемые UI-компоненты
+│   └── api/          # Слой взаимодействия с API
+├── dist/             # Собранный фронтенд (раздаётся бэкендом)
+├── run_server.bat    # Скрипт запуска для Windows
+└── Installer/        # Файлы установщика для Windows
 ```
-Run with builded GUI:
-Run `run_server.bat`
+
+## Установка
+
+### Бэкенд
+```bash
+cd backend
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+# Запустить сервер
+python -m uvicorn main:app --reload
+```
+
+### Фронтенд (только для разработки / пересборки)
+```bash
+npm install
+npm run build
+```
+
+## Использование
+
+1. Откройте приложение и введите имена двух участников (Синий vs Красный) для начала раунда
+2. Судьи переходят на `/connect`, вводят своё имя и перенаправляются на мобильный интерфейс оценки
+3. Используйте QR-код на главном экране таблицы для передачи URL подключения судьям
+4. Судьи выставляют баллы каждому участнику по типам ударов (удар рукой, удар ногой, бросок) — 1–3 очка или предупреждение
+5. Панель главного судьи (`/table`) отображает текущие оценки всех судей и итоговый результат
+
+## Маршруты
+
+| Маршрут | Описание |
+|---------|----------|
+| `/` | Настройка нового раунда |
+| `/table` | Панель главного судьи |
+| `/connect` | Регистрация судьи |
+| `/mobile` | Мобильный интерфейс оценки |
