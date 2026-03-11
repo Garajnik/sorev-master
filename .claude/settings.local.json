@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -r \"WebSocket\\\\|socket\\\\|ws://\" f:/Programming/sorev-master/src f:/Programming/sorev-master/backend --include=*.jsx --include=*.js --include=*.py)",
+      "Bash(grep -r \"kick\\\\|remove\" f:/Programming/sorev-master/src f:/Programming/sorev-master/backend --include=*.jsx --include=*.js --include=*.py)"
+    ]
+  }
+}

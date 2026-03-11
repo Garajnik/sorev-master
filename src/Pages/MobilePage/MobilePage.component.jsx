@@ -1,10 +1,11 @@
 //TODO: Create dialogue window if scores for both participants are equal when the trial ends.
 //TODO: Узнать, что делать с предупреждениями
 
-import { Badge, Box, Button, Divider, Stack, Typography } from "@mui/material";
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, Divider, Stack, Typography } from "@mui/material";
 import { SquareButton } from "../../Components";
-import { useState, useEffect, useRef } from "react";
-import { fetchParticipants, postScore } from "../../api/api";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { postScore } from "../../api/api";
 
 export function MobilePage() {
   const [judgeName, setJudgeName] = useState("")
@@ -12,21 +13,13 @@ export function MobilePage() {
     blueName: "",
     redName: ""
   })
+  const [kicked, setKicked] = useState(false)
 
-  const ws = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setJudgeName(localStorage.getItem("judgeName"))
   }, [])
-
-  async function fetchAndSetParticipants() {
-    const responseObj = await fetchParticipants();
-    setParticipants({
-      blueName: responseObj.blue,
-      redName: responseObj.red,
-    });
-  }
-
 
   useEffect(() => {
     const ws = new WebSocket(`ws://${window.location.hostname}:8000/ws/${judgeName}`);
@@ -45,10 +38,12 @@ export function MobilePage() {
             redName: data.participants[1][1]
           }
         )
+      } else if (data.data === "kicked") {
+        setKicked(true)
       }
     }
     return () => ws.close()
-  })
+  }, [judgeName])
 
   const handleScoreClick = (punch, color, score) => {
     const data = { judge: judgeName, punch: punch, color: color, score: score }
@@ -58,6 +53,14 @@ export function MobilePage() {
 
   return (
     <Box display={"flex"} sx={{ gap: 1, alignItems: "center", justifyContent: "center", flexDirection: "column", position: "absolute", top: 0, bottom: 0, right: 0, left: 0, margin: 2, marginRight: 10, marginLeft: 10 }} >
+      <Dialog open={kicked}>
+        <DialogContent>
+          <DialogContentText>Вы были отключены главным судьёй</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => navigate("/connect")} variant="contained">Ок</Button>
+        </DialogActions>
+      </Dialog>
       <Stack direction={"row"} spacing={5} width={"100%"} justifyContent={"space-between"}>
         <Typography color="primary">{participants.blueName}</Typography>
         <Typography variant="button">{judgeName}</Typography>

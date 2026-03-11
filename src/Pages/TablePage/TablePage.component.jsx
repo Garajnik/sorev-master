@@ -21,7 +21,6 @@ import styles from "./TablePage.module.css";
 import { QRCodeDialog } from '../../Components/QRCodeDialog/QRCodeDialog.component';
 import { DisconnectDialog } from "../../Components/DisconnectDialog/DisconnectDialog.component.jsx";
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { ScoreChip } from '../../Components/index.js';
 import { ScoreCell } from '../../Components/ScoreCell/ScoreCell.component.jsx';
 import { Typography } from '@mui/material';
 
@@ -353,7 +352,7 @@ export const TablePage = () => {
                 </TableCell>))}
                 <TableCell align='center' sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={rowIndex}>{rowName}</TableCell>
                 {judges.map((_, index) => (<TableCell sx={{ borderBottom: rowIndex === 4 ? "none" : "1px solid grey" }} key={index}>
-                  {getScoreElement(1, judges[index], rowIndex).map((value, index) => (<ScoreChip key={index + value} number={value} />))}
+                  <ScoreCell>{getScoreElement(1, judges[index], rowIndex)}</ScoreCell>
                 </TableCell>))}
               </TableRow>))}
               <TableRow>

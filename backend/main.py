@@ -65,7 +65,7 @@ async def get_local_ip_route():
 
 @app.get("/kick_judge/{judge}")
 async def kick_judge(judge: str):
-    await manager.disconnect(judge)
+    await manager.disconnect(judge, kicked=True)
 
 
 @app.post("/send_score")
@@ -113,8 +113,13 @@ class ConnectionManager:
         await self.update_connected_judges()
         return True
 
-    async def disconnect(self, judgeName):
+    async def disconnect(self, judgeName, kicked=False):
         if judgeName in self.connected_judges:
+            if kicked:
+                try:
+                    await self.connected_judges[judgeName].send_json({"data": "kicked"})
+                except Exception:
+                    pass
             del self.connected_judges[judgeName]
             print(
                 f"{judgeName} disconnected. Remaining: {list(self.connected_judges.keys())}\n"
