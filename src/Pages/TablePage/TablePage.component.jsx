@@ -16,13 +16,11 @@ export const TablePage = () => {
   const [selectedJudge, setSelectedJudge] = React.useState("");
   const [judges, setJudges] = React.useState([]);
   const [columns, setColumns] = React.useState([]);
-  const [_, setJudgesDict] = React.useState({});
   const judgesDictRef = React.useRef({});
   const [participants, setParticipants] = React.useState({
     redName: "",
     blueName: "",
   });
-  const [scoreSums, setScoreSums] = React.useState(0);
   const [roundActive, setRoundActive] = React.useState(false);
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
 
@@ -139,8 +137,6 @@ export const TablePage = () => {
   }
 
   function calcScore(colorIdx, judgeKey) {
-    const colors = ["blue", "red"];
-    const color = colors[colorIdx];
     const enemyColor = colorIdx === 0 ? 1 : 0;
     if (getScoreSum(colorIdx, judgeKey) > getScoreSum(enemyColor, judgeKey)) {
       return 1;
@@ -187,7 +183,7 @@ export const TablePage = () => {
       }
     };
     return () => ws.close();
-  }, []);
+  });
 
   React.useEffect(() => {
     fillScores();
@@ -206,7 +202,6 @@ export const TablePage = () => {
     judgesArr.forEach((name, idx) => {
       map[name] = `judge${idx + 1}`;
     });
-    setJudgesDict(map);
     judgesDictRef.current = map;
     loadScoresFromServer(map);
     return map;
