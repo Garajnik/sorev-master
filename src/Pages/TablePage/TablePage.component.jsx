@@ -183,7 +183,7 @@ export const TablePage = () => {
       }
     };
     return () => ws.close();
-  });
+  }, []);
 
   React.useEffect(() => {
     fillScores();

@@ -4,7 +4,7 @@ import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogContent
 import { SquareButton } from "../../Components";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { postScore } from "../../api/api";
+import { postScore, fetchParticipants } from "../../api/api";
 
 export function MobilePage() {
   const [judgeName, setJudgeName] = useState("")
@@ -21,6 +21,9 @@ export function MobilePage() {
 
   useEffect(() => {
     setJudgeName(localStorage.getItem("judgeName"))
+    fetchParticipants().then(data => {
+      setParticipants({ blueName: data.blue, redName: data.red })
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
