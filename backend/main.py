@@ -1,19 +1,18 @@
-from typing import Union
+import json
+import os
+import socket
+from typing import Dict, Union
+
 from fastapi import (
     FastAPI,
     WebSocket,
     WebSocketDisconnect,
 )
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-import os
-import socket
-import json
-from typing import Dict
-from fastapi.responses import JSONResponse
 from fastapi_offline import FastAPIOffline
+from pydantic import BaseModel
 
 # app = FastAPI()
 app = FastAPIOffline()
@@ -32,6 +31,13 @@ app.add_middleware(
 
 
 class Score(BaseModel):
+    color: str
+    judge: str
+    punch: str
+    score: int
+
+
+class UndoScore(BaseModel):
     color: str
     judge: str
     punch: str
@@ -65,32 +71,17 @@ async def get_local_ip_route():
 
 @app.get("/kick_judge/{judge}")
 async def kick_judge(judge: str):
-    await manager.disconnect(judge, kicked=True)
-
-
-@app.post("/round_end")
-async def round_end():
-    await manager.broadcast_round_end()
-
-
-class TiebreakerVote(BaseModel):
-    judge: str
-    winner: str
-
-
-@app.post("/tiebreaker")
-async def tiebreaker(vote: TiebreakerVote):
-    await manager.send_tiebreaker_vote(vote)
-
-
-@app.get("/scores")
-async def get_scores():
-    return JSONResponse(content=manager.get_scores())
+    await manager.disconnect(judge)
 
 
 @app.post("/send_score")
 async def send_score(score: Score):
     await manager.send_score(score)
+
+
+@app.post("/undo_score")
+async def undo_score(undo: UndoScore):
+    await manager.send_undo(undo)
 
 
 class Participants(BaseModel):
@@ -117,7 +108,6 @@ class ConnectionManager:
         self.connected_judges: Dict[str, WebSocket] = {}
         self.main_judge_ws: WebSocket
         self.participants: Participants = Participants(blue="", red="")
-        self.scores: Dict[str, Dict] = {}  # {judgeName: {color: {punch: [values]}}}
 
     async def connect(self, websocket: WebSocket, judgeName):
         if judgeName in self.connected_judges:
@@ -134,13 +124,8 @@ class ConnectionManager:
         await self.update_connected_judges()
         return True
 
-    async def disconnect(self, judgeName, kicked=False):
+    async def disconnect(self, judgeName):
         if judgeName in self.connected_judges:
-            if kicked:
-                try:
-                    await self.connected_judges[judgeName].send_json({"data": "kicked"})
-                except Exception:
-                    pass
             del self.connected_judges[judgeName]
             print(
                 f"{judgeName} disconnected. Remaining: {list(self.connected_judges.keys())}\n"
@@ -154,27 +139,7 @@ class ConnectionManager:
             {"data": "judgeupd", "judges": list(self.connected_judges.keys())}
         )
 
-    def store_score(self, score: Score):
-        judge = score.judge
-        color = score.color
-        punch = score.punch
-        value = score.score
-
-        if judge not in self.scores:
-            self.scores[judge] = {
-                "blue": {"hand": [], "leg": [], "throw": [], "warn": [], "tiebreak": []},
-                "red": {"hand": [], "leg": [], "throw": [], "warn": [], "tiebreak": []},
-            }
-
-        if punch not in self.scores[judge][color]:
-            self.scores[judge][color][punch] = []
-        self.scores[judge][color][punch].append(value)
-
-    def get_scores(self):
-        return self.scores
-
     async def send_score(self, score: Score):
-        self.store_score(score)
         await self.main_judge_ws.send_json(
             {
                 "data": "score",
@@ -182,17 +147,13 @@ class ConnectionManager:
             }
         )
 
-    async def send_tiebreaker_vote(self, vote: TiebreakerVote):
+    async def send_undo(self, undo: UndoScore):
         await self.main_judge_ws.send_json(
-            {"data": "tiebreaker", "judge": vote.judge, "winner": vote.winner}
+            {
+                "data": "undo",
+                "undo": undo.model_dump(),
+            }
         )
-
-    async def broadcast_round_end(self):
-        for ws in self.connected_judges.values():
-            try:
-                await ws.send_json({"data": "roundend"})
-            except Exception:
-                pass
 
     async def connect_participant(self, participants: Participants):
         self.participants = participants

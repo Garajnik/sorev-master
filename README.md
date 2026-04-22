@@ -30,7 +30,7 @@ python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 # Запустить сервер
-python -m uvicorn main:app --reload
+python -m uvicorn main:app --reload --host 0.0.0.0
 ```
 
 ### Фронтенд (только для разработки / пересборки)

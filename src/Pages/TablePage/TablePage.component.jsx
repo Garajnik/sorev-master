@@ -2,7 +2,12 @@
 //TODO: After judge disconnects - delete his scores too (or cache them so he would be able to restore them)
 
 import * as React from "react";
-import { fetchParticipants, fetchScores, kickJudge, postRoundEnd } from "../../api/api";
+import {
+  fetchParticipants,
+  fetchScores,
+  kickJudge,
+  postRoundEnd,
+} from "../../api/api";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
 import HighlightOffIcon from "@mui/icons-material/HighlightOff";
 import styles from "./TablePage.module.css";
@@ -26,19 +31,67 @@ export const TablePage = () => {
 
   const initialScores = {
     blue: {
-      judge1: { hand: [], leg: [], throw: [], warn: [], tiebreak: [] },
-      judge2: { hand: [], leg: [], throw: [], warn: [], tiebreak: [] },
-      judge3: { hand: [], leg: [], throw: [], warn: [], tiebreak: [] },
+      judge1: {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+        tiebreak: [],
+      },
+      judge2: {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+        tiebreak: [],
+      },
+      judge3: {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+        tiebreak: [],
+      },
     },
     red: {
-      judge1: { hand: [], leg: [], throw: [], warn: [], tiebreak: [] },
-      judge2: { hand: [], leg: [], throw: [], warn: [], tiebreak: [] },
-      judge3: { hand: [], leg: [], throw: [], warn: [], tiebreak: [] },
+      judge1: {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+        tiebreak: [],
+      },
+      judge2: {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+        tiebreak: [],
+      },
+      judge3: {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+        tiebreak: [],
+      },
     },
   };
   const [scores, setScores] = React.useState(initialScores);
 
-  const rows = ["Удар рукой", "Удар ногой", "Бросок", "Предупреждение"];
+  const rows = [
+    "Удар рукой",
+    "Удар ногой",
+    "Бросок",
+    "Замечания",
+    "Предупреждение",
+  ];
 
   const createColumn = (judgeName, participantColor) => {
     return { judgeName, participantColor };
@@ -46,7 +99,7 @@ export const TablePage = () => {
 
   const getScoreElement = (colorIdx, judgeName, punchIdx) => {
     const colors = ["blue", "red"];
-    const punches = ["hand", "leg", "throw", "warn"];
+    const punches = ["hand", "leg", "throw", "remark", "warn"];
     const color = colors[colorIdx];
     const judgeKey = judgesDictRef.current[judgeName];
     if (!judgeKey) return [];
@@ -67,6 +120,7 @@ export const TablePage = () => {
         hand: [],
         leg: [],
         throw: [],
+        remark: [],
         warn: [],
       };
       const currentArr = prevJudge[punch] || [];
@@ -99,10 +153,61 @@ export const TablePage = () => {
     });
   };
 
+  const removeLastScore = (color, judgeName, punch, score) => {
+    const judgeKey = judgesDictRef.current[judgeName];
+    if (!judgeKey) return;
+
+    setScores((prev) => {
+      const prevColor = prev[color] || {};
+      const prevJudge = prevColor[judgeKey] || {
+        hand: [],
+        leg: [],
+        throw: [],
+        remark: [],
+        warn: [],
+      };
+      const currentArr = prevJudge[punch] || [];
+      if (currentArr.length === 0) return prev;
+
+      let newArr;
+      if (score === 4) {
+        // Undo Н modifier: strip "H" suffix from the last entry
+        const last = currentArr[currentArr.length - 1];
+        if (String(last).endsWith("H")) {
+          const base = String(last).slice(0, -1);
+          const numBase = Number(base);
+          newArr = [
+            ...currentArr.slice(0, -1),
+            isNaN(numBase) ? base : numBase,
+          ];
+        } else {
+          // Last entry doesn't have H, nothing to undo
+          return prev;
+        }
+      } else {
+        // Regular undo: remove the last entry
+        newArr = currentArr.slice(0, -1);
+      }
+
+      return {
+        ...prev,
+        [color]: {
+          ...prevColor,
+          [judgeKey]: {
+            ...prevJudge,
+            [punch]: newArr,
+          },
+        },
+      };
+    });
+  };
+
   function evaluateScoreNumber(scoreValue) {
     switch (scoreValue) {
       case 5:
         return "П";
+      case 6:
+        return "З";
       default:
         return scoreValue;
     }
@@ -110,14 +215,16 @@ export const TablePage = () => {
 
   function getScoreSum(colorIdx, judgeKey) {
     const colors = ["blue", "red"];
-    const punches = ["hand", "leg", "throw", "warn", "tiebreak"];
+    const regularPunches = ["hand", "leg", "throw", "tiebreak"];
     const judges = ["judge1", "judge2", "judge3"];
     const judgeName = judges[judgeKey];
     const color = colors[colorIdx];
+    const enemyColor = colors[colorIdx === 0 ? 1 : 0];
     let sum = 0;
-    for (let i = 0; i < punches.length; i++) {
-      if (scores[color][judgeName][punches[i]][0]) {
-        sum = scores[color][judgeName][punches[i]].reduce(
+    // Regular scoring
+    for (let i = 0; i < regularPunches.length; i++) {
+      if (scores[color][judgeName][regularPunches[i]][0]) {
+        sum = scores[color][judgeName][regularPunches[i]].reduce(
           (previous, current) => {
             const str = String(current);
             if (str.endsWith("H")) {
@@ -133,6 +240,19 @@ export const TablePage = () => {
         );
       }
     }
+    // Penalty points from opposing side
+    const enemyRemarks =
+      (scores[enemyColor] &&
+        scores[enemyColor][judgeName] &&
+        scores[enemyColor][judgeName]["remark"]) ||
+      [];
+    sum += enemyRemarks.length * 1;
+    const enemyWarns =
+      (scores[enemyColor] &&
+        scores[enemyColor][judgeName] &&
+        scores[enemyColor][judgeName]["warn"]) ||
+      [];
+    sum += enemyWarns.length * 2;
     return sum;
   }
 
@@ -179,6 +299,13 @@ export const TablePage = () => {
           data.score.judge,
           data.score.punch,
           data.score.score,
+        );
+      } else if (data.data === "undo") {
+        removeLastScore(
+          data.undo.color,
+          data.undo.judge,
+          data.undo.punch,
+          data.undo.score,
         );
       }
     };

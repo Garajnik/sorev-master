@@ -26,6 +26,15 @@ export const postScore = async (data) => {
   return response.json();
 };
 
+export const undoScore = async (data) => {
+  const response = await fetch(`${BASE_URL}/undo_score`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+};
+
 export const connectJudge = async (name) => {
   const response = await fetch(`${BASE_URL}/connect_judge`, {
     method: "POST",

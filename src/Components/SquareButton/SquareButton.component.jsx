@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { Badge, Button } from "@mui/material";
+import { Button } from "@mui/material";
 
 const CustomButton = styled(Button)(({ theme }) => ({
   width: 50,
@@ -14,8 +14,6 @@ const CustomButton = styled(Button)(({ theme }) => ({
 
 export function SquareButton(props) {
   return (
-    <Badge badgeContent={props.badgenumber} color="warning">
-      <CustomButton  {...props}></CustomButton>
-    </Badge>
+    <CustomButton {...props}></CustomButton>
   )
 }
