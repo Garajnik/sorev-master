@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(grep -r \"WebSocket\\\\|socket\\\\|ws://\" f:/Programming/sorev-master/src f:/Programming/sorev-master/backend --include=*.jsx --include=*.js --include=*.py)",
-      "Bash(grep -r \"kick\\\\|remove\" f:/Programming/sorev-master/src f:/Programming/sorev-master/backend --include=*.jsx --include=*.js --include=*.py)"
+      "Bash(grep -r \"kick\\\\|remove\" f:/Programming/sorev-master/src f:/Programming/sorev-master/backend --include=*.jsx --include=*.js --include=*.py)",
+      "Bash(Get-ChildItem -Force)",
+      "Bash(Select-Object Name, Mode)",
+      "Bash(Get-ChildItem -Path \"g:\\\\Work\\\\Programming\\\\sorev-master\" -Recurse -Depth 2)",
+      "Bash(Select-Object -First 50)",
+      "PowerShell(Get-ChildItem -Path \"g:\\\\Work\\\\Programming\\\\sorev-master\\\\backend\" -Depth 1 | Where-Object { $_.PSIsContainer -eq $false } | Select-Object Name)",
+      "WebSearch",
+      "WebFetch(domain:kpfu.ru)",
+      "WebFetch(domain:www.nstu.ru)",
+      "WebFetch(domain:student.itmo.ru)"
     ]
   }
 }
