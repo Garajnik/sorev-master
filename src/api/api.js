@@ -76,3 +76,17 @@ export const postTiebreaker = async (judgeName, winner) => {
   });
   return response;
 };
+
+export const fetchDbParticipants = async () => {
+  const response = await fetch(`${BASE_URL}/db/participants`);
+  return response.json();
+};
+
+export const createDbParticipant = async (name) => {
+  const response = await fetch(`${BASE_URL}/db/participants`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return response.json();
+};

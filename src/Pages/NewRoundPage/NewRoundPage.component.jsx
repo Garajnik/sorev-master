@@ -1,96 +1,141 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchParticipantNames, connectParticipants } from "../../api/api";
+import { connectParticipants, fetchDbParticipants, createDbParticipant } from "../../api/api";
 import styles from "./NewRoundPage.module.css";
-import { Button, TextField, Typography } from "@mui/material";
+import {
+  Autocomplete,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+  Typography,
+} from "@mui/material";
 
 export const NewRoundPage = () => {
-  const [inputs, setInputs] = useState({
-    blue: "",
-    red: "",
-  });
-
-  const [errors, setErrors] = useState({
-    field1: "",
-    field2: "",
-  });
-
-  useEffect(() => {
-    const fetchNames = async () => {
-      try {
-        const data = await fetchParticipantNames();
-        setInputs({
-          field1: data.redName,
-          field2: data.blueName,
-        });
-      } catch (error) {
-        console.error("Error fetching participant names:", error);
-      }
-    };
-
-    fetchNames();
-  },);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setInputs({
-      ...inputs,
-      [name]: value,
-    });
-  };
+  const [inputs, setInputs] = useState({ blue: "", red: "" });
+  const [errors, setErrors] = useState({ blue: "", red: "" });
+  const [dbParticipants, setDbParticipants] = useState([]);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [newNames, setNewNames] = useState([]);
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchDbParticipants()
+      .then(setDbParticipants)
+      .catch((err) => console.error("Error fetching participants:", err));
+  }, []);
+
+  const participantNames = dbParticipants.map((p) => p.name);
+
+  const handleChange = (field) => (_event, value) => {
+    setInputs((prev) => ({ ...prev, [field]: value ?? "" }));
+  };
+
   const validate = () => {
-    let field1Error = "";
-    let field2Error = "";
+    const blueError = inputs.blue ? "" : "Введите ФИО синего участника";
+    const redError = inputs.red ? "" : "Введите ФИО красного участника";
+    setErrors({ blue: blueError, red: redError });
+    return !blueError && !redError;
+  };
 
-    if (!inputs.blue) {
-      field1Error = "Введите ФИО синего участника";
-    }
-
-    if (!inputs.red) {
-      field2Error = "Введите ФИО красного участника";
-    }
-
-    if (field1Error || field2Error) {
-      setErrors({
-        field1: field1Error,
-        field2: field2Error,
-      });
-      return false;
-    }
-
-    return true;
+  const createRound = async () => {
+    await connectParticipants(inputs);
+    navigate("/table");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const isValid = validate();
-    if (isValid) {
-      try {
-        const data = await connectParticipants(inputs);
-        console.log(data);
-        navigate("/table");
-      } catch (error) {
-        console.error("Error submitting data:", error);
-      }
-      setErrors({
-        field1: "",
-        field2: "",
-      });
+    if (!validate()) return;
+
+    const unknown = [inputs.blue, inputs.red].filter(
+      (name) => !participantNames.includes(name)
+    );
+
+    if (unknown.length > 0) {
+      setNewNames(unknown);
+      setSaveDialogOpen(true);
+    } else {
+      await createRound();
     }
+  };
+
+  const handleSave = async () => {
+    setSaveDialogOpen(false);
+    await Promise.all(newNames.map(createDbParticipant));
+    await createRound();
+  };
+
+  const handleSkipSave = async () => {
+    setSaveDialogOpen(false);
+    await createRound();
   };
 
   return (
     <div className={styles.container}>
       <form className={styles.form}>
         <Typography variant="h4">Создание нового раунда</Typography>
-        <TextField error={errors.field1} helperText={errors.field1} name="blue" id="outlined-basic" label="ФИО Синий" variant="outlined" onChange={handleChange} />
-        <TextField error={errors.field2} helperText={errors.field2} name="red" id="outlined-basic" label="ФИО Красный" variant="outlined" onChange={handleChange} />
-        <Button variant="contained" onClick={handleSubmit}>Начать</Button>
+
+        <Autocomplete
+          freeSolo
+          options={participantNames}
+          value={inputs.blue}
+          onInputChange={handleChange("blue")}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="ФИО Синий"
+              error={!!errors.blue}
+              helperText={errors.blue}
+            />
+          )}
+        />
+
+        <Autocomplete
+          freeSolo
+          options={participantNames}
+          value={inputs.red}
+          onInputChange={handleChange("red")}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="ФИО Красный"
+              error={!!errors.red}
+              helperText={errors.red}
+            />
+          )}
+        />
+
+        <Button variant="contained" onClick={handleSubmit}>
+          Начать
+        </Button>
       </form>
+
+      <Dialog open={saveDialogOpen} onClose={handleSkipSave}>
+        <DialogTitle>Новые участники</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Следующие участники не найдены в базе данных:
+            <br />
+            {newNames.map((n) => (
+              <strong key={n}>
+                — {n}
+                <br />
+              </strong>
+            ))}
+            Сохранить их для будущих раундов?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleSkipSave}>Продолжить без сохранения</Button>
+          <Button variant="contained" onClick={handleSave}>
+            Сохранить
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
-

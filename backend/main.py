@@ -1,7 +1,23 @@
 import json
 import os
 import socket
+import sqlite3
 from typing import Dict, Union
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "participants.db")
+
+
+def init_db():
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        "CREATE TABLE IF NOT EXISTS participants "
+        "(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL UNIQUE)"
+    )
+    con.commit()
+    con.close()
+
+
+init_db()
 
 from fastapi import (
     FastAPI,
@@ -90,6 +106,28 @@ class Participants(BaseModel):
 
     def toJson(self):
         return json.dumps(self, default=lambda o: o.__dict__)
+
+
+class ParticipantEntry(BaseModel):
+    name: str
+
+
+@app.get("/db/participants")
+def get_db_participants():
+    con = sqlite3.connect(DB_PATH)
+    rows = con.execute("SELECT id, name FROM participants ORDER BY name").fetchall()
+    con.close()
+    return [{"id": r[0], "name": r[1]} for r in rows]
+
+
+@app.post("/db/participants")
+def create_db_participant(entry: ParticipantEntry):
+    con = sqlite3.connect(DB_PATH)
+    con.execute("INSERT OR IGNORE INTO participants (name) VALUES (?)", (entry.name,))
+    con.commit()
+    row = con.execute("SELECT id, name FROM participants WHERE name = ?", (entry.name,)).fetchone()
+    con.close()
+    return {"id": row[0], "name": row[1]}
 
 
 @app.post("/connect_participants")
