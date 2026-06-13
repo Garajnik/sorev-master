@@ -63,6 +63,11 @@ export const kickJudge = async (judgeName) => {
   return response;
 };
 
+export const postRoundStart = async () => {
+  const response = await fetch(`${BASE_URL}/round_start`, { method: "POST" });
+  return response.json();
+};
+
 export const postRoundEnd = async () => {
   const response = await fetch(`${BASE_URL}/round_end`, { method: "POST" });
   return response;
@@ -88,5 +93,15 @@ export const createDbParticipant = async (name) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name }),
   });
+  return response.json();
+};
+
+export const fetchRounds = async () => {
+  const response = await fetch(`${BASE_URL}/db/rounds`);
+  return response.json();
+};
+
+export const fetchRoundScores = async (roundId) => {
+  const response = await fetch(`${BASE_URL}/db/rounds/${roundId}/scores`);
   return response.json();
 };

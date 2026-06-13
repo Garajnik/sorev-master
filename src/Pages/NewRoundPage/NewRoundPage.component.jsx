@@ -118,6 +118,10 @@ export const NewRoundPage = () => {
         <Button variant="contained" onClick={handleSubmit}>
           Начать
         </Button>
+
+        <Button variant="text" onClick={() => navigate("/history")}>
+          Прошедшие раунды
+        </Button>
       </form>
 
       <Dialog open={saveDialogOpen} onClose={handleSkipSave}>

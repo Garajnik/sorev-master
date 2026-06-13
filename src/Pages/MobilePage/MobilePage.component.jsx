@@ -27,6 +27,7 @@ export function MobilePage() {
     redName: "",
   });
   const [kicked, setKicked] = useState(false);
+  const [roundActive, setRoundActive] = useState(false);
   const [roundEnded, setRoundEnded] = useState(false);
   const [tiebreaker, setTiebreaker] = useState(false);
   const [scoreHistory, setScoreHistory] = useState([]);
@@ -75,7 +76,16 @@ export function MobilePage() {
         });
       } else if (data.data === "kicked") {
         setKicked(true);
+      } else if (data.data === "roundstate") {
+        // Sent right after connecting so a judge who joins mid-competition
+        // knows whether scoring is currently allowed.
+        setRoundActive(Boolean(data.active));
+      } else if (data.data === "roundstart") {
+        setRoundEnded(false);
+        setTiebreaker(false);
+        setRoundActive(true);
       } else if (data.data === "roundend") {
+        setRoundActive(false);
         if (localScoresRef.current.blue === localScoresRef.current.red) {
           setTiebreaker(true);
         } else {
@@ -88,6 +98,8 @@ export function MobilePage() {
   }, [judgeName]);
 
   const handleScoreClick = (punch, color, score) => {
+    // Scoring is only allowed while the round is in progress.
+    if (!roundActive) return;
     // Validate Н (score 4): only allow if the last action for this
     // (punch, color) was a regular score (not already an Н or warning)
     if (score === 4) {
@@ -132,6 +144,7 @@ export function MobilePage() {
   };
 
   const handleUndo = () => {
+    if (!roundActive) return;
     if (scoreHistory.length === 0) return;
     const lastAction = scoreHistory[scoreHistory.length - 1];
     undoScore({
@@ -199,6 +212,18 @@ export function MobilePage() {
             Ок
           </Button>
         </DialogActions>
+      </Dialog>
+      {/* Modal blocker: prevents any scoring until the main judge starts the
+          round. It has no dismiss button and closes automatically once a
+          "roundstart" message arrives. */}
+      <Dialog open={!roundActive && !kicked && !roundEnded && !tiebreaker}>
+        <DialogTitle>Ожидание начала раунда</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Главный судья ещё не начал раунд. Ввод баллов станет доступен после
+            его начала.
+          </DialogContentText>
+        </DialogContent>
       </Dialog>
       <Dialog open={roundEnded}>
         <DialogContent>

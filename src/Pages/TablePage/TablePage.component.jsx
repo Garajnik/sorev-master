@@ -6,6 +6,7 @@ import {
   fetchParticipants,
   fetchScores,
   kickJudge,
+  postRoundStart,
   postRoundEnd,
 } from "../../api/api";
 import QrCode2Icon from "@mui/icons-material/QrCode2";
@@ -28,6 +29,7 @@ export const TablePage = () => {
   });
   const [roundActive, setRoundActive] = React.useState(false);
   const [elapsedSeconds, setElapsedSeconds] = React.useState(0);
+  const [roundNumber, setRoundNumber] = React.useState(null);
 
   const initialScores = {
     blue: {
@@ -404,13 +406,17 @@ export const TablePage = () => {
     return `${m}м:${s}с`;
   };
 
-  const handleRoundToggle = () => {
+  const handleRoundToggle = async () => {
     if (roundActive) {
       setRoundActive(false);
       postRoundEnd();
     } else {
       setElapsedSeconds(0);
       setRoundActive(true);
+      const result = await postRoundStart();
+      if (result && result.round_id != null) {
+        setRoundNumber(result.round_id);
+      }
     }
   };
 
@@ -423,7 +429,11 @@ export const TablePage = () => {
         <div className={`${styles.participantSide} ${styles.blueSide}`}>
           {participants.blueName || "Синий"}
         </div>
-        <div className={styles.headerCenter}>Таблица результатов</div>
+        <div className={styles.headerCenter}>
+          {roundNumber != null
+            ? `Таблица результатов · Раунд №${roundNumber}`
+            : "Таблица результатов"}
+        </div>
         <div className={`${styles.participantSide} ${styles.redSide}`}>
           {participants.redName || "Красный"}
         </div>

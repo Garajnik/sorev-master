@@ -1,6 +1,12 @@
 import "./global.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { MobilePage, NewJudgePage, NewRoundPage, TablePage } from "./Pages";
+import {
+  HistoryPage,
+  MobilePage,
+  NewJudgePage,
+  NewRoundPage,
+  TablePage,
+} from "./Pages";
 
 function App() {
   return (
@@ -10,6 +16,7 @@ function App() {
         <Route path="/mobile" element={<MobilePage />} />
         <Route path="/table" element={<TablePage />} />
         <Route path="/connect" element={<NewJudgePage />} />
+        <Route path="/history" element={<HistoryPage />} />
       </Routes>
     </Router>
   );
